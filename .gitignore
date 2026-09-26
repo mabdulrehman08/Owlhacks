@@ -1,0 +1,5 @@
+# secrets
+.env
+# local data / caches
+*.db
+__pycache__/

@@ -1,0 +1,22 @@
+[
+  {"timestamp": 2.4,   "type": "neutral",   "intensity": 0.28, "confidence": 0.90},
+  {"timestamp": 9.7,   "type": "interest",  "intensity": 0.55, "confidence": 0.83},
+  {"timestamp": 18.3,  "type": "joy",       "intensity": 0.62, "confidence": 0.85},
+  {"timestamp": 27.1,  "type": "joy",       "intensity": 0.78, "confidence": 0.89},
+  {"timestamp": 35.6,  "type": "neutral",   "intensity": 0.24, "confidence": 0.92},
+  {"timestamp": 44.0,  "type": "boredom",   "intensity": 0.46, "confidence": 0.74},
+  {"timestamp": 52.8,  "type": "boredom",   "intensity": 0.58, "confidence": 0.79},
+  {"timestamp": 61.2,  "type": "surprise",  "intensity": 0.88, "confidence": 0.90},
+  {"timestamp": 66.5,  "type": "joy",       "intensity": 0.91, "confidence": 0.94},
+  {"timestamp": 74.9,  "type": "interest",  "intensity": 0.63, "confidence": 0.81},
+  {"timestamp": 83.3,  "type": "confusion", "intensity": 0.71, "confidence": 0.86},
+  {"timestamp": 88.0,  "type": "confusion", "intensity": 0.85, "confidence": 0.90},
+  {"timestamp": 96.4,  "type": "neutral",   "intensity": 0.31, "confidence": 0.88},
+  {"timestamp": 105.7, "type": "interest",  "intensity": 0.57, "confidence": 0.80},
+  {"timestamp": 114.2, "type": "joy",       "intensity": 0.73, "confidence": 0.87},
+  {"timestamp": 122.8, "type": "surprise",  "intensity": 0.69, "confidence": 0.84},
+  {"timestamp": 131.5, "type": "sadness",   "intensity": 0.52, "confidence": 0.77},
+  {"timestamp": 140.1, "type": "interest",  "intensity": 0.60, "confidence": 0.82},
+  {"timestamp": 148.6, "type": "joy",       "intensity": 0.84, "confidence": 0.91},
+  {"timestamp": 155.0, "type": "neutral",   "intensity": 0.20, "confidence": 0.93}
+]
