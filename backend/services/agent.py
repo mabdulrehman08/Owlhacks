@@ -12,8 +12,8 @@ import os
 import re
 from typing import Callable
 
-import analytics
-import database
+from models import reaction as reaction_model
+from services import analytics
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ def _strip_ids(rs: list[dict]) -> list[dict]:
 
 def build_tool_impls(session_id: str) -> dict[str, Callable[..., object]]:
     def reactions() -> list[dict]:
-        return database.get_reactions(session_id)
+        return reaction_model.list_for_session(session_id)
 
     return {
         "get_summary": lambda: analytics.summary(reactions()),
@@ -108,7 +108,7 @@ def build_tool_impls(session_id: str) -> dict[str, Callable[..., object]]:
             reactions(), {t.lower() for t in types}
         ),
         "get_reactions_between": lambda start, end: _strip_ids(
-            database.get_reactions(session_id, float(start), float(end))
+            reaction_model.list_for_session(session_id, float(start), float(end))
         ),
         "get_reaction_at": lambda timestamp: analytics.reaction_at(reactions(), float(timestamp)),
     }
@@ -121,7 +121,7 @@ def fmt_time(seconds: float) -> str:
 
 def cited_timestamps(text: str, session_id: str) -> list[float]:
     """Timestamps from the session that the answer mentions (as '127.4s' or '2:07'), in order."""
-    known = [r["timestamp"] for r in database.get_reactions(session_id)]
+    known = [r["timestamp"] for r in reaction_model.list_for_session(session_id)]
     found: list[float] = []
     for m in re.finditer(r"(\d+(?:\.\d+)?)s\b|\b(\d{1,2}):(\d{2})\b", text):
         value = float(m.group(1)) if m.group(1) else int(m.group(2)) * 60 + int(m.group(3))
