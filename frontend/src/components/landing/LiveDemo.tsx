@@ -83,11 +83,7 @@ export function LiveDemo() {
 
         {offline ? (
           <div className="mt-10 rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            The live demo needs the backend running. Start it and refresh, or{" "}
-            <Link to="/dashboard" className="font-semibold text-primary hover:underline">
-              open the demo dashboard
-            </Link>
-            .
+            The live demo needs the backend running. Start it and refresh.
           </div>
         ) : (
           <div className="mt-10 grid gap-5 lg:grid-cols-[1.15fr_1fr]">
@@ -133,10 +129,10 @@ export function LiveDemo() {
               </div>
 
               <Link
-                to="/dashboard"
+                to="/sessions"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
               >
-                Open the full dashboard <ArrowRight className="h-4 w-4" />
+                View all sessions <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
 

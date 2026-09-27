@@ -22,6 +22,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { AppShell } from "@/components/AppShell";
+import {
+  EXPRESSIONS,
+  EXPRESSION_META,
+  ExpressionTracker,
+  dominantExpression,
+  emptyScores,
+  type ExpressionScores,
+} from "@/lib/expressions";
 
 export const Route = createFileRoute("/live")({
   head: () => ({
@@ -37,13 +45,7 @@ export const Route = createFileRoute("/live")({
   component: LiveTrackerPage,
 });
 
-type ExpressionPoint = {
-  time: string;
-  Happy: number;
-  Surprised: number;
-  Angry: number;
-  Sad: number;
-};
+type ExpressionPoint = { time: string } & ExpressionScores;
 
 export function LiveTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -58,12 +60,10 @@ export function LiveTrackerPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [faceDetected, setFaceDetected] = useState(false);
   const [chartData, setChartData] = useState<ExpressionPoint[]>([]);
-  const [currentScores, setCurrentScores] = useState({
-    Happy: 0,
-    Surprised: 0,
-    Angry: 0,
-    Sad: 0,
-  });
+  const [currentScores, setCurrentScores] = useState<ExpressionScores>(emptyScores);
+  // The first ~second of frames is the viewer's resting face; scores are relative to it.
+  const trackerRef = useRef(new ExpressionTracker());
+  const [calibrated, setCalibrated] = useState(false);
 
   // 1. Initialize MediaPipe FaceLandmarker with blendshapes (browser only)
   useEffect(() => {
@@ -76,7 +76,7 @@ export function LiveTrackerPage() {
 
         const { FilesetResolver, FaceLandmarker } = await import("@mediapipe/tasks-vision");
         const vision = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm",
         );
 
         if (!active) return;
@@ -113,7 +113,7 @@ export function LiveTrackerPage() {
         console.error("Failed to load MediaPipe model:", err);
         if (active) {
           setModelError(
-            err?.message || "Failed to load MediaPipe vision model. Check internet connectivity."
+            err?.message || "Failed to load MediaPipe vision model. Check internet connectivity.",
           );
           setIsModelLoading(false);
         }
@@ -202,34 +202,17 @@ export function LiveTrackerPage() {
       if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
         setFaceDetected(true);
         const shapes = results.faceBlendshapes[0].categories;
-        const getScore = (name: string) =>
-          shapes.find((s: any) => s.categoryName === name)?.score || 0;
-
-        // Same emotion formula as old stuff App.js
-        const Happy = Math.round(
-          ((getScore("mouthSmileLeft") + getScore("mouthSmileRight")) / 2) * 100
-        );
-        const Surprised = Math.round(getScore("jawOpen") * 100);
-        const Angry = Math.round(
-          ((getScore("browDownLeft") + getScore("browDownRight")) / 2) * 100
-        );
-        const Sad = Math.round(
-          ((getScore("mouthFrownLeft") + getScore("mouthFrownRight")) / 2) * 100
-        );
-
-        setCurrentScores({ Happy, Surprised, Angry, Sad });
+        const tracker = trackerRef.current;
+        if (!tracker.isCalibrated) {
+          tracker.calibrate(shapes);
+          setCalibrated(tracker.isCalibrated);
+        }
+        const scores = tracker.update(shapes);
+        setCurrentScores(scores);
 
         const timeStr = new Date().toLocaleTimeString().split(" ")[0] || "";
-        const newDataPoint: ExpressionPoint = {
-          time: timeStr,
-          Happy,
-          Surprised,
-          Angry,
-          Sad,
-        };
-
         setChartData((prev) => {
-          const updated = [...prev, newDataPoint];
+          const updated = [...prev, { time: timeStr, ...scores }];
           if (updated.length > 30) updated.shift();
           return updated;
         });
@@ -257,21 +240,9 @@ export function LiveTrackerPage() {
   }, [isModelLoading, isCameraActive, detectFace]);
 
   // Determine dominant emotion
-  const dominant = Object.entries(currentScores).reduce(
-    (max, [emotion, val]) => (val > max.val ? { emotion, val } : max),
-    { emotion: "Neutral", val: 15 }
-  );
-
-  const dominantEmoji =
-    dominant.emotion === "Happy"
-      ? "😄"
-      : dominant.emotion === "Surprised"
-        ? "😮"
-        : dominant.emotion === "Angry"
-          ? "😠"
-          : dominant.emotion === "Sad"
-            ? "😢"
-            : "😐";
+  const dominant = dominantExpression(currentScores);
+  const dominantMeta = dominant.type === "neutral" ? null : EXPRESSION_META[dominant.type];
+  const dominantEmoji = dominantMeta?.emoji ?? "😐";
 
   return (
     <AppShell>
@@ -355,7 +326,11 @@ export function LiveTrackerPage() {
                             : "bg-muted-foreground"
                       }`}
                     />
-                    {faceDetected ? "Face Detected" : isCameraActive ? "Searching..." : "Camera Off"}
+                    {faceDetected
+                      ? "Face Detected"
+                      : isCameraActive
+                        ? "Searching..."
+                        : "Camera Off"}
                   </span>
                 </div>
               </div>
@@ -400,7 +375,9 @@ export function LiveTrackerPage() {
                   <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-xl bg-card/85 px-3 py-1.5 text-xs font-semibold backdrop-blur shadow-md border border-border">
                     <span className="text-base">{dominantEmoji}</span>
                     <span>
-                      {dominant.val > 20 ? dominant.emotion : "Neutral"} ({dominant.val}%)
+                      {calibrated
+                        ? `${dominantMeta?.label ?? "Neutral"} (${dominant.score}%)`
+                        : "Calibrating — relax your face…"}
                     </span>
                   </div>
                 )}
@@ -409,7 +386,8 @@ export function LiveTrackerPage() {
               {/* Camera Actions */}
               <div className="mt-3 flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">
-                  Running Mode: <span className="font-semibold text-foreground">Client GPU/WASM</span>
+                  Running Mode:{" "}
+                  <span className="font-semibold text-foreground">Client GPU/WASM</span>
                 </span>
                 {isCameraActive ? (
                   <button
@@ -431,38 +409,20 @@ export function LiveTrackerPage() {
 
             {/* Current Real-time Scores */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="card-surface p-3 text-center border-l-4 border-emotion-joy">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  😄 Happy
-                </p>
-                <p className="stat-number text-xl mt-1 text-emotion-joy">
-                  {currentScores.Happy}%
-                </p>
-              </div>
-              <div className="card-surface p-3 text-center border-l-4 border-emotion-surprise">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  😮 Surprised
-                </p>
-                <p className="stat-number text-xl mt-1 text-emotion-surprise">
-                  {currentScores.Surprised}%
-                </p>
-              </div>
-              <div className="card-surface p-3 text-center border-l-4 border-emotion-anger">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  😠 Angry
-                </p>
-                <p className="stat-number text-xl mt-1 text-emotion-anger">
-                  {currentScores.Angry}%
-                </p>
-              </div>
-              <div className="card-surface p-3 text-center border-l-4 border-emotion-sadness">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  😢 Sad
-                </p>
-                <p className="stat-number text-xl mt-1 text-emotion-sadness">
-                  {currentScores.Sad}%
-                </p>
-              </div>
+              {EXPRESSIONS.map((e) => (
+                <div
+                  key={e.key}
+                  className="card-surface p-3 text-center border-l-4"
+                  style={{ borderLeftColor: e.color }}
+                >
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                    {e.emoji} {e.label}
+                  </p>
+                  <p className="stat-number text-xl mt-1" style={{ color: e.color }}>
+                    {currentScores[e.key]}%
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -511,38 +471,18 @@ export function LiveTrackerPage() {
                         }}
                       />
                       <Legend wrapperStyle={{ fontSize: "12px" }} />
-                      <Line
-                        type="monotone"
-                        dataKey="Happy"
-                        stroke="var(--emotion-joy)"
-                        strokeWidth={3}
-                        dot={false}
-                        isAnimationActive={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Surprised"
-                        stroke="var(--emotion-surprise)"
-                        strokeWidth={3}
-                        dot={false}
-                        isAnimationActive={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Angry"
-                        stroke="var(--emotion-anger)"
-                        strokeWidth={3}
-                        dot={false}
-                        isAnimationActive={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Sad"
-                        stroke="var(--emotion-sadness)"
-                        strokeWidth={3}
-                        dot={false}
-                        isAnimationActive={false}
-                      />
+                      {EXPRESSIONS.map((e) => (
+                        <Line
+                          key={e.key}
+                          type="monotone"
+                          dataKey={e.key}
+                          name={`${e.emoji} ${e.label}`}
+                          stroke={e.color}
+                          strokeWidth={3}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      ))}
                     </LineChart>
                   </ResponsiveContainer>
                 )}
