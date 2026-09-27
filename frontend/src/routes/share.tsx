@@ -3,15 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
-  Camera,
   Check,
-  CheckCircle2,
   Copy,
   ExternalLink,
-  FileText,
-  Info,
   Link2,
-  Play,
+  Loader2,
   PlusCircle,
   Sparkles,
   Upload,
@@ -61,43 +57,35 @@ const SAMPLE_VIDEOS = [
   },
 ];
 
-const steps = [
-  {
-    icon: FileText,
-    title: "1. Consent & Prep",
-    body: "Participants review a short consent notice about observable facial reactions.",
-  },
-  {
-    icon: Camera,
-    title: "2. Camera Check",
-    body: "They enable their webcam; MediaPipe validates face visibility and lighting in real-time.",
-  },
-  {
-    icon: Play,
-    title: "3. Watch Your Video",
-    body: "They watch your submitted video while client-side blendshapes measure engagement and emotions.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "4. Receive Stats in Dashboard",
-    body: "Reactions are securely saved and the Product Owner inspects intensity graphs, top moments, and AI chat.",
-  },
-];
+const SOURCES = [
+  { key: "upload", label: "Upload file", icon: Upload },
+  { key: "url", label: "Video link", icon: Link2 },
+  { key: "sample", label: "Sample clip", icon: Sparkles },
+] as const;
+
+type SourceType = (typeof SOURCES)[number]["key"];
+
+/** "checkout_redesign-v2.mp4" -> "Checkout redesign v2" */
+function titleFromFile(fileName: string) {
+  const base = fileName
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
+  return base ? base.charAt(0).toUpperCase() + base.slice(1) : "";
+}
 
 function ShareTest() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [sourceType, setSourceType] = useState<"upload" | "url" | "sample">("upload");
-  const [name, setName] = useState("Checkout Redesign Concept");
-  const [description, setDescription] = useState(
-    "We're testing a new checkout experience. Watch the short video and share your honest reactions."
-  );
+  const [sourceType, setSourceType] = useState<SourceType>("upload");
+  const [name, setName] = useState("");
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const [createdSession, setCreatedSession] = useState<Session | null>(null);
   const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -117,486 +105,329 @@ function ShareTest() {
     };
   }, [previewUrl]);
 
-  const testLink = createdSession
-    ? `${origin}/test/${createdSession.id}`
-    : `${origin}/test/demo`;
+  const testLink = createdSession ? `${origin}/test/${createdSession.id}` : "";
+
+  // What the preview player shows for the current source.
+  const preview = sourceType === "upload" ? previewUrl : videoUrl || null;
+  const hasVideo = sourceType === "upload" ? !!selectedFile : !!videoUrl.trim();
 
   function handleFileSelected(file: File) {
     if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
     }
     setSelectedFile(file);
-    setFileDetails({
-      name: file.name,
-      size: `${(file.size / 1_048_576).toFixed(1)} MB`,
-    });
     setPreviewUrl(URL.createObjectURL(file));
+    if (!name.trim()) setName(titleFromFile(file.name));
+    setError(null);
+  }
+
+  function clearFile() {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function chooseSource(next: SourceType) {
+    setSourceType(next);
+    setError(null);
+    if (next === "sample" && !SAMPLE_VIDEOS.some((s) => s.url === videoUrl)) {
+      setVideoUrl(SAMPLE_VIDEOS[0]?.url || "");
+    } else if (next === "url" && SAMPLE_VIDEOS.some((s) => s.url === videoUrl)) {
+      setVideoUrl("");
+    }
+  }
+
+  function startOver() {
+    setCreatedSession(null);
+    setName("");
+    setVideoUrl("");
+    clearFile();
+    setSubmitStatus("");
+    setCopied(false);
   }
 
   async function handleCreateTest(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !hasVideo) return;
 
     setIsSubmitting(true);
-    setSubmitStatus("Preparing submission...");
+    setError(null);
 
     try {
-      let finalVideoUrl = "";
+      let finalVideoUrl = videoUrl.trim();
 
-      if (sourceType === "upload") {
-        if (!selectedFile) {
-          alert("Please select a video file to upload, or switch to Video URL / Sample Clip.");
-          setIsSubmitting(false);
-          return;
-        }
-
-        setSubmitStatus("Uploading video to server & database storage...");
+      if (sourceType === "upload" && selectedFile) {
+        setSubmitStatus("Uploading video…");
         const uploadResult = await uploadVideo(selectedFile);
         finalVideoUrl = uploadResult.video_url;
-      } else if (sourceType === "url") {
-        if (!videoUrl.trim()) {
-          alert("Please enter a valid video URL.");
-          setIsSubmitting(false);
-          return;
-        }
-        finalVideoUrl = videoUrl.trim();
-      } else if (sourceType === "sample") {
-        if (!videoUrl) {
-          finalVideoUrl = SAMPLE_VIDEOS[0]?.url || "";
-        } else {
-          finalVideoUrl = videoUrl;
-        }
       }
 
-      setSubmitStatus("Creating test session in database...");
+      setSubmitStatus("Creating your test…");
       const session = await createSession({
         name: name.trim(),
         video_url: finalVideoUrl,
       });
 
       setCreatedSession(session);
-      setSubmitStatus("Session created successfully!");
     } catch (err: any) {
       console.error("Failed to create session:", err);
-      alert("Failed to create session: " + (err?.message || String(err)));
+      setError(err?.message || String(err));
     } finally {
       setIsSubmitting(false);
+      setSubmitStatus("");
     }
   }
 
   return (
     <AppShell>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        {/* Main Column */}
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-center gap-2 eyebrow mb-1">
-              <span>Product Owner Portal</span>
-            </div>
-            <h1 className="text-2xl font-bold">Submit Video & Create Test Link</h1>
-            <p className="text-sm text-muted-foreground">
-              Upload video files directly to the database storage or configure a video link, then generate a
-              unique participant link. Recorded reactions will save to the database and display on your
-              Reaction Intensity Timeline.
-            </p>
-          </div>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <span className="eyebrow">New test</span>
+          <h1 className="mt-1 text-2xl font-bold">Test a video</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Add your video, give it a name, and get one link to send to viewers. Their reactions
+            show up on the test's dashboard.
+          </p>
+        </div>
 
-          {/* Quick Active Link Box */}
-          <div className="card-surface p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 border border-primary/30 bg-primary/5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                <ExternalLink className="h-5 w-5" />
+        {createdSession ? (
+          /* Done: the link to send */
+          <section className="card-surface overflow-hidden rounded-2xl">
+            <div className="flex items-center gap-3 border-b border-border bg-positive-soft px-6 py-5">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-positive text-white">
+                <Check className="h-5 w-5" />
               </span>
-              <div>
-                <p className="text-xs font-semibold text-foreground">
-                  Active Participant Testing Link {createdSession ? "(Newly Created)" : "(Demo Test)"}
-                </p>
-                <p className="text-xs text-muted-foreground font-mono">{testLink}</p>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold">Your test is ready</h2>
+                <p className="truncate text-sm text-muted-foreground">{createdSession.name}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Link
-                to="/test/$sessionId"
-                params={{ sessionId: createdSession ? createdSession.id : "demo" }}
-                target="_blank"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> Open Link as Participant
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  void navigator.clipboard?.writeText(testLink);
-                  setCopied(true);
-                  window.setTimeout(() => setCopied(false), 2000);
-                }}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-xs font-semibold hover:bg-muted"
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-positive" /> : <Copy className="h-3.5 w-3.5" />}
-                {copied ? "Copied" : "Copy Link"}
-              </button>
-            </div>
-          </div>
 
-          {/* Form */}
-          <form onSubmit={handleCreateTest} className="space-y-6">
-            {/* Step 1: Submit Content */}
-            <section className="card-surface p-5 rounded-2xl space-y-4">
-              <header className="flex items-center justify-between gap-3">
-                <h2 className="flex items-center gap-2.5 text-base font-semibold">
-                  <Num>1</Num> Submit Testable Video Content
-                </h2>
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Video className="h-4 w-4 text-primary" /> Supported: MP4, WebM, MOV
-                </span>
-              </header>
-
-              {/* Source Mode Tabs */}
-              <div className="flex items-center gap-2 border-b border-border pb-3">
-                <button
-                  type="button"
-                  onClick={() => setSourceType("upload")}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                    sourceType === "upload"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <Upload className="h-3.5 w-3.5" /> Upload Video File
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSourceType("url")}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                    sourceType === "url"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <Link2 className="h-3.5 w-3.5" /> Video URL
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSourceType("sample");
-                    if (!videoUrl) setVideoUrl(SAMPLE_VIDEOS[0]?.url || "");
-                  }}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                    sourceType === "sample"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <Sparkles className="h-3.5 w-3.5" /> Select Sample Video
-                </button>
-              </div>
-
-              {/* TAB 1: FILE UPLOAD */}
-              {sourceType === "upload" && (
-                <div className="space-y-4">
-                  <div
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const f = e.dataTransfer.files?.[0];
-                      if (f) handleFileSelected(f);
-                    }}
-                    className="rounded-xl border border-dashed border-input p-6 text-center hover:border-primary/50 transition-colors"
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="video/mp4,video/webm,video/quicktime,video/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleFileSelected(f);
-                      }}
-                    />
-
-                    {fileDetails ? (
-                      <div className="space-y-4 max-w-lg mx-auto">
-                        <div className="flex items-center justify-between p-3.5 bg-muted rounded-xl">
-                          <div className="flex items-center gap-3">
-                            <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
-                              <Video className="h-5 w-5" />
-                            </span>
-                            <div className="text-left">
-                              <p className="text-xs font-semibold text-foreground">{fileDetails.name}</p>
-                              <p className="text-[11px] text-muted-foreground">{fileDetails.size} · Ready to upload to database</p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedFile(null);
-                              setFileDetails(null);
-                              setPreviewUrl(null);
-                            }}
-                            className="text-muted-foreground hover:text-foreground p-1"
-                            title="Remove file"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-
-                        {previewUrl && (
-                          <div className="relative aspect-video rounded-xl overflow-hidden bg-black max-w-md mx-auto shadow-md">
-                            <video
-                              src={previewUrl}
-                              controls
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex flex-col items-center justify-center gap-2 mx-auto cursor-pointer"
-                      >
-                        <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
-                          <Upload className="h-5 w-5" />
-                        </span>
-                        <span className="text-sm font-semibold">Choose video file to test</span>
-                        <span className="text-xs text-muted-foreground">
-                          Drag and drop or browse (MP4, WebM, MOV up to 500 MB)
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: VIDEO URL */}
-              {sourceType === "url" && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium">Public Video URL (.mp4, .webm, or stream)</label>
-                    <div className="mt-1.5 flex gap-2">
-                      <input
-                        type="url"
-                        value={videoUrl}
-                        onChange={(e) => setVideoUrl(e.target.value)}
-                        placeholder="https://example.com/video.mp4"
-                        className="flex-1 rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm outline-none focus:border-ring font-mono"
-                      />
-                    </div>
-                  </div>
-                  {videoUrl && (
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-black max-w-md mx-auto shadow-md">
-                      <video
-                        src={videoUrl}
-                        controls
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* TAB 3: SAMPLE CLIPS */}
-              {sourceType === "sample" && (
-                <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    Select a ready-to-test sample video clip to test immediately:
-                  </p>
-                  <div className="grid gap-2.5 sm:grid-cols-3">
-                    {SAMPLE_VIDEOS.map((sample) => (
-                      <div
-                        key={sample.url}
-                        onClick={() => setVideoUrl(sample.url)}
-                        className={`cursor-pointer p-3.5 rounded-xl border transition-all text-left ${
-                          videoUrl === sample.url
-                            ? "border-primary bg-primary/10 shadow-sm"
-                            : "border-border bg-card hover:bg-muted/50"
-                        }`}
-                      >
-                        <p className="text-xs font-semibold">{sample.name}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{sample.duration} clip</p>
-                      </div>
-                    ))}
-                  </div>
-                  {videoUrl && (
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-black max-w-md mx-auto shadow-md mt-3">
-                      <video
-                        src={videoUrl}
-                        controls
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
-
-            {/* Step 2: Test Details */}
-            <section className="card-surface p-5 rounded-2xl space-y-4">
-              <h2 className="flex items-center gap-2.5 text-base font-semibold">
-                <Num>2</Num> Test Details & Instructions
-              </h2>
-
+            <div className="space-y-5 p-6">
               <div>
-                <label className="block text-xs font-medium">
-                  Test Title <span className="text-destructive">*</span>
+                <label className="text-xs font-semibold text-muted-foreground">
+                  Send this link to your viewers
                 </label>
-                <input
-                  required
-                  value={name}
-                  maxLength={100}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Checkout Redesign Concept"
-                  className="mt-1.5 w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm outline-none focus:border-ring"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium">Instructions for Testers</label>
-                <textarea
-                  value={description}
-                  maxLength={500}
-                  rows={3}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Explain what the participant should expect or focus on..."
-                  className="mt-1.5 w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm outline-none focus:border-ring"
-                />
-              </div>
-
-              {/* Status Message */}
-              {submitStatus && (
-                <div className="p-3 rounded-xl bg-info-soft text-xs text-primary font-medium flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 animate-spin" />
-                  <span>{submitStatus}</span>
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    readOnly
+                    value={testLink}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="min-w-0 flex-1 rounded-xl border border-input bg-muted/40 px-3.5 py-3 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(testLink);
+                      setCopied(true);
+                      window.setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? "Copied" : "Copy link"}
+                  </button>
                 </div>
-              )}
+              </div>
 
-              {/* Submit Button */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !name.trim()}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-pop hover:bg-primary/90 disabled:opacity-50 transition-all cursor-pointer"
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Link
+                  to="/sessions/$sessionId"
+                  params={{ sessionId: createdSession.id }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted"
                 >
-                  <PlusCircle className="h-4 w-4" />
-                  {isSubmitting ? "Processing & Saving..." : "Create Test & Save to Database"}
-                </button>
-              </div>
-            </section>
-          </form>
-
-          {/* Step 3: Generated Link Card */}
-          {createdSession && (
-            <section className="card-surface p-5 rounded-2xl border-2 border-primary/30 bg-primary/5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-primary font-semibold">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Test Created Successfully!</span>
-                </div>
-                <span className="text-xs text-muted-foreground font-mono">
-                  Session ID: {createdSession.id}
-                </span>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Your test is ready. Send this link to participants so they can watch your video and
-                record their reactions.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  readOnly
-                  value={testLink}
-                  className="min-w-0 flex-1 rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm font-mono"
-                />
-                <button
-                  onClick={() => {
-                    void navigator.clipboard?.writeText(testLink);
-                    setCopied(true);
-                    window.setTimeout(() => setCopied(false), 2000);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Copied" : "Copy Link"}
-                </button>
-              </div>
-
-              {/* Direct Handoff Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <BarChart3 className="h-4 w-4 text-primary" /> View dashboard
+                </Link>
                 <Link
                   to="/test/$sessionId"
                   params={{ sessionId: createdSession.id }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-4 py-2 text-xs font-semibold hover:bg-muted"
+                  target="_blank"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted"
                 >
-                  <ExternalLink className="h-3.5 w-3.5 text-primary" /> Open Link as Participant
+                  <ExternalLink className="h-4 w-4 text-primary" /> Try it yourself
                 </Link>
-                <Link
-                  to="/dashboard"
-                  search={{ session: createdSession.id }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent/80"
+                <button
+                  type="button"
+                  onClick={startOver}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
                 >
-                  <BarChart3 className="h-3.5 w-3.5" /> View Stats in Dashboard
-                </Link>
+                  <PlusCircle className="h-4 w-4" /> Test another video
+                </button>
               </div>
-            </section>
-          )}
-        </div>
-
-        {/* Sidebar Info Column */}
-        <div className="space-y-6">
-          <section className="card-surface p-5 rounded-2xl">
-            <h2 className="text-base font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> How the User Test Works
-            </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              What your participants experience when they open the test link:
-            </p>
-            <ol className="mt-4 space-y-4">
-              {steps.map((s) => (
-                <li key={s.title} className="flex gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-primary">
-                    <s.icon className="h-4.5 w-4.5" />
-                  </span>
-                  <div>
-                    <span className="block text-xs font-semibold">{s.title}</span>
-                    <span className="block text-[11px] leading-relaxed text-muted-foreground">
-                      {s.body}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
-
-          <section className="card-surface p-5 rounded-2xl">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-primary" /> Live Stats in Dashboard
-            </h3>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              Once users complete the test, their reaction scores (valence, intensity, emotion
-              categories) are immediately computed by the analytics service. You can review them on
-              the Product Owner Dashboard and ask the AI agent questions about participant feedback.
-            </p>
-            <div className="mt-4">
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
-              >
-                Go to Dashboard <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
             </div>
           </section>
-        </div>
+        ) : (
+          /* Form */
+          <form onSubmit={handleCreateTest} className="card-surface space-y-6 rounded-2xl p-6">
+            {/* Video */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-base font-semibold">Video</h2>
+                <div className="inline-flex rounded-xl bg-muted p-1">
+                  {SOURCES.map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => chooseSource(key)}
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        sourceType === key
+                          ? "bg-card text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-3.5 w-3.5" /> {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {sourceType === "upload" && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime,video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileSelected(f);
+                    }}
+                  />
+                  {selectedFile ? (
+                    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <Video className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{selectedFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(selectedFile.size / 1_048_576).toFixed(1)} MB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearFile}
+                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        title="Remove file"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragging(true);
+                      }}
+                      onDragLeave={() => setDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragging(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) handleFileSelected(f);
+                      }}
+                      className={`flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors ${
+                        dragging
+                          ? "border-primary bg-primary/5"
+                          : "border-input hover:border-primary/50 hover:bg-muted/40"
+                      }`}
+                    >
+                      <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+                        <Upload className="h-5 w-5" />
+                      </span>
+                      <span className="text-sm font-semibold">
+                        Drop a video here or <span className="text-primary">browse</span>
+                      </span>
+                      <span className="text-xs text-muted-foreground">MP4, WebM or MOV</span>
+                    </button>
+                  )}
+                </>
+              )}
+
+              {sourceType === "url" && (
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://example.com/video.mp4"
+                  className="w-full rounded-xl border border-input bg-card px-3.5 py-3 font-mono text-sm outline-none focus:border-ring"
+                />
+              )}
+
+              {sourceType === "sample" && (
+                <div className="grid gap-2.5 sm:grid-cols-3">
+                  {SAMPLE_VIDEOS.map((sample) => (
+                    <button
+                      key={sample.url}
+                      type="button"
+                      onClick={() => setVideoUrl(sample.url)}
+                      className={`rounded-xl border p-3.5 text-left transition-colors ${
+                        videoUrl === sample.url
+                          ? "border-primary bg-primary/5 ring-1 ring-primary"
+                          : "border-border bg-card hover:bg-muted/50"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold">{sample.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{sample.duration} clip</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {preview && (
+                <div className="overflow-hidden rounded-xl bg-black">
+                  <video src={preview} controls className="aspect-video w-full object-contain" />
+                </div>
+              )}
+            </div>
+
+            {/* Name */}
+            <div className="space-y-2">
+              <label htmlFor="test-name" className="text-base font-semibold">
+                Test name
+              </label>
+              <input
+                id="test-name"
+                required
+                value={name}
+                maxLength={100}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Checkout redesign concept"
+                className="w-full rounded-xl border border-input bg-card px-3.5 py-3 text-sm outline-none focus:border-ring"
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-xl bg-negative-soft px-3.5 py-2.5 text-sm text-negative">
+                Couldn't create the test: {error}
+              </p>
+            )}
+
+            <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-muted-foreground">
+                Viewers do a quick camera check, then watch. Only reactions are shared.
+              </p>
+              <button
+                type="submit"
+                disabled={isSubmitting || !name.trim() || !hasVideo}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-pop transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> {submitStatus}
+                  </>
+                ) : (
+                  <>
+                    Create test link <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </AppShell>
-  );
-}
-
-function Num({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-      {children}
-    </span>
   );
 }

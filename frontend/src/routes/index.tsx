@@ -141,9 +141,6 @@ function Landing() {
             <a href="#privacy" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Privacy
             </a>
-            <Link to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-              Demo dashboard
-            </Link>
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
@@ -178,9 +175,6 @@ function Landing() {
             <a href="#privacy" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
               Privacy
             </a>
-            <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
-              Demo dashboard
-            </Link>
             <Link
               to="/share"
               onClick={() => setMenuOpen(false)}
@@ -219,13 +213,6 @@ function Landing() {
           >
             <Upload className="h-4 w-4" /> Get started — upload a video
           </Link>
-          <Link
-            to="/dashboard"
-            search={{ session: "demo" }}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-input bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
-          >
-            View demo dashboard
-          </Link>
         </div>
 
       </section>
@@ -239,7 +226,7 @@ function Landing() {
               <span className="h-2.5 w-2.5 rounded-full bg-notable/50" />
               <span className="h-2.5 w-2.5 rounded-full bg-positive/50" />
               <span className="ml-3 truncate font-mono text-[11px] text-muted-foreground">
-                readtheroom.app/dashboard
+                readtheroom.cooking/sessions/demo
               </span>
             </div>
 

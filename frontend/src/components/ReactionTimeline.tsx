@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getReactions, type Reaction } from "@/lib/api";
+import { emotionMeta } from "@/lib/emotions";
 import { formatTime } from "@/lib/reaction-data";
 
 const W = 1000;
@@ -59,27 +60,6 @@ function getMarkers(reactions: Reaction[]) {
     .slice(0, 6)
     .sort((a, b) => a.timestamp - b.timestamp);
 }
-
-// Emoji for each reaction type
-const emojiForType: Record<string, string> = {
-  joy: "😄",
-  happy: "😄",
-  happiness: "😄",
-  smile: "😄",
-  surprise: "😮",
-  surprised: "😮",
-  confusion: "😕",
-  confused: "😕",
-  frustration: "😠",
-  anger: "😠",
-  sadness: "😢",
-  sad: "😢",
-  interest: "🧐",
-  neutral: "😐",
-  attention: "👀",
-  engagement: "👀",
-  boredom: "🥱",
-};
 
 export function ReactionTimeline({
   sessionId,
@@ -165,7 +145,7 @@ export function ReactionTimeline({
               style={{ left: `${(m.timestamp / effectiveDuration) * 100}%` }}
             >
               <span className="grid h-8 w-8 place-items-center rounded-full border border-border bg-card text-base shadow-card">
-                {emojiForType[m.type.toLowerCase()] || "😐"}
+                {emotionMeta(m.type).emoji}
               </span>
               <span className="rounded-md bg-notable-soft px-1.5 py-0.5 font-mono text-[9px] font-semibold text-notable-text">
                 {formatTime(m.timestamp)}

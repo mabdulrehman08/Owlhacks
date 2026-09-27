@@ -10,22 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as ReactRouteImport } from './routes/react'
 import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as ShareRouteImport } from './routes/share'
+import { Route as SessionsSessionIdRouteImport } from './routes/sessions_.$sessionId'
 import { Route as TestSessionIdRouteImport } from './routes/test/$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiveRoute = LiveRouteImport.update({
@@ -53,6 +48,11 @@ const ShareRoute = ShareRouteImport.update({
   path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionsSessionIdRoute = SessionsSessionIdRouteImport.update({
+  id: '/sessions_/$sessionId',
+  path: '/sessions/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestSessionIdRoute = TestSessionIdRouteImport.update({
   id: '/test/$sessionId',
   path: '/test/$sessionId',
@@ -61,76 +61,76 @@ const TestSessionIdRoute = TestSessionIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/live': typeof LiveRoute
   '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
   '/share': typeof ShareRoute
+  '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/test/$sessionId': typeof TestSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/live': typeof LiveRoute
   '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
   '/share': typeof ShareRoute
+  '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/test/$sessionId': typeof TestSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/live': typeof LiveRoute
   '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
   '/share': typeof ShareRoute
+  '/sessions_/$sessionId': typeof SessionsSessionIdRoute
   '/test/$sessionId': typeof TestSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/live'
     | '/react'
     | '/sessions'
     | '/setup'
     | '/share'
+    | '/sessions/$sessionId'
     | '/test/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
     | '/live'
     | '/react'
     | '/sessions'
     | '/setup'
     | '/share'
+    | '/sessions/$sessionId'
     | '/test/$sessionId'
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
     | '/live'
     | '/react'
     | '/sessions'
     | '/setup'
     | '/share'
+    | '/sessions_/$sessionId'
     | '/test/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
   LiveRoute: typeof LiveRoute
   ReactRoute: typeof ReactRoute
   SessionsRoute: typeof SessionsRoute
   SetupRoute: typeof SetupRoute
   ShareRoute: typeof ShareRoute
+  SessionsSessionIdRoute: typeof SessionsSessionIdRoute
   TestSessionIdRoute: typeof TestSessionIdRoute
 }
 
@@ -141,13 +141,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/live': {
@@ -185,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sessions_/$sessionId': {
+      id: '/sessions_/$sessionId'
+      path: '/sessions/$sessionId'
+      fullPath: '/sessions/$sessionId'
+      preLoaderRoute: typeof SessionsSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/test/$sessionId': {
       id: '/test/$sessionId'
       path: '/test/$sessionId'
@@ -197,12 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
   LiveRoute: LiveRoute,
   ReactRoute: ReactRoute,
   SessionsRoute: SessionsRoute,
   SetupRoute: SetupRoute,
   ShareRoute: ShareRoute,
+  SessionsSessionIdRoute: SessionsSessionIdRoute,
   TestSessionIdRoute: TestSessionIdRoute,
 }
 export const routeTree = rootRouteImport

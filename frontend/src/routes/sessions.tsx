@@ -259,10 +259,10 @@ export function SessionsPage() {
                               <span>Participant</span>
                             </Link>
 
-                            {/* View in Dashboard */}
+                            {/* This session's dashboard */}
                             <Link
-                              to="/dashboard"
-                              search={{ session: s.id }}
+                              to="/sessions/$sessionId"
+                              params={{ sessionId: s.id }}
                               className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                             >
                               View Stats <ArrowRight className="h-3 w-3" />

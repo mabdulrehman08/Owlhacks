@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import {
   ArrowRight,
@@ -43,13 +43,12 @@ import {
 import { formatTime } from "@/lib/reaction-data";
 import poster from "@/assets/session-frame.jpg";
 
-export const Route = createFileRoute("/dashboard")({
-  validateSearch: (search: Record<string, unknown>): { session?: string | undefined } => ({
-    session: typeof search["session"] === "string" ? (search["session"] as string) : undefined,
-  }),
+// Each session is its own dashboard: /sessions/<id>. The trailing underscore keeps
+// it a sibling of /sessions (which has no <Outlet />) rather than a nested child.
+export const Route = createFileRoute("/sessions_/$sessionId")({
   head: () => ({
     meta: [
-      { title: "Product Owner Dashboard | Read The Room" },
+      { title: "Session Dashboard | Read The Room" },
       {
         name: "description",
         content:
@@ -57,11 +56,14 @@ export const Route = createFileRoute("/dashboard")({
       },
     ],
   }),
-  component: Dashboard,
+  component: SessionDashboard,
 });
 
-export function Dashboard() {
-  const search = Route.useSearch();
+export function SessionDashboard() {
+  const { sessionId } = Route.useParams();
+  const navigate = useNavigate();
+  const setSessionId = (id: string) =>
+    void navigate({ to: "/sessions/$sessionId", params: { sessionId: id } });
   const videoRef = useRef<HTMLVideoElement>(null);
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -69,7 +71,6 @@ export function Dashboard() {
 
   // Sessions state
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [sessionId, setSessionId] = useState<string>(search.session || "demo");
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
 
   // Insights & Data state
@@ -79,28 +80,12 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Sync with search parameter if changed
-  useEffect(() => {
-    if (search.session) {
-      setSessionId(search.session);
-    }
-  }, [search.session]);
-
-  // Load available sessions from backend
+  // Load available sessions for the switcher
   useEffect(() => {
     listSessions()
-      .then((items) => {
-        setSessions(items);
-        if (items.length > 0 && !search.session) {
-          // Keep current sessionId if in list, otherwise select first
-          if (!items.some((s) => s.id === sessionId) && sessionId !== "demo") {
-            const first = items[0];
-            if (first) setSessionId(first.id);
-          }
-        }
-      })
+      .then(setSessions)
       .catch((err) => console.error("Failed to list sessions:", err));
-  }, [sessionId, search.session]);
+  }, []);
 
   // Load session metadata
   useEffect(() => {
@@ -174,9 +159,15 @@ export function Dashboard() {
         {/* Top Session Selector Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
           <div className="space-y-1">
+            <Link
+              to="/sessions"
+              className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary"
+            >
+              ← All sessions
+            </Link>
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary uppercase tracking-wider">
-                Product Owner Dashboard
+                Session Dashboard
               </span>
               <span className="text-xs text-muted-foreground font-mono">ID: {sessionId}</span>
             </div>
