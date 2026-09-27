@@ -29,6 +29,8 @@ curl -X POST localhost:8000/sessions/video1/reactions -H 'content-type: applicat
 |---|---|
 | `GET /sessions` | all sessions |
 | `GET /sessions/{id}` | `{id, name, video_url, created_at, reaction_count}` |
+| `POST /sessions/upload-video` | multipart file upload; returns `{filename, original_name, video_url, size}` |
+| `DELETE /sessions/{id}` | deletes session and cascades to all its reactions |
 | `GET /sessions/{id}/reactions?start=&end=` | reactions in time order (for a timeline chart) |
 | `GET /sessions/{id}/insights` | highlights, see below |
 | `POST /sessions/{id}/chat` | `{"message": "...", "history": [{"role": "user", "content": "..."}, ...]}` |

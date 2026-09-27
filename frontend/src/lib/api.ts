@@ -94,6 +94,30 @@ export async function createSession(data: {
   return res.json();
 }
 
+export async function deleteSession(sessionId: string): Promise<void> {
+  const res = await fetch(`/api/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(`Failed to delete session: ${res.statusText}`);
+}
+
+export async function uploadVideo(
+  file: File
+): Promise<{ filename: string; original_name: string; video_url: string; size: number }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/api/sessions/upload-video", {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => null);
+    throw new Error(errorData?.detail || `Failed to upload video: ${res.statusText}`);
+  }
+  return res.json();
+}
+
 // Reactions endpoints
 
 export async function getReactions(

@@ -47,6 +47,6 @@ def seed_demo() -> None:
     session.create(
         config.DEMO_SESSION_ID,
         name="Demo video",
-        video_url="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        video_url="/api/videos/product_demo.mp4",
     )
     reaction.add_many(config.DEMO_SESSION_ID, json.loads(config.MOCK_REACTIONS_PATH.read_text()))
