@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
-  CalendarClock,
   Camera,
   Check,
   CheckCircle2,
@@ -80,8 +79,8 @@ const steps = [
   },
   {
     icon: CheckCircle2,
-    title: "4. Review Session Analytics",
-    body: "Reactions are securely saved and the emotion data, intensity graphs, and AI agent are ready.",
+    title: "4. Receive Stats in Dashboard",
+    body: "Reactions are securely saved and the Product Owner inspects intensity graphs, top moments, and AI chat.",
   },
 ];
 
@@ -533,10 +532,11 @@ function ShareTest() {
                   <ExternalLink className="h-3.5 w-3.5 text-primary" /> Open Link as Participant
                 </Link>
                 <Link
-                  to="/sessions"
+                  to="/dashboard"
+                  search={{ session: createdSession.id }}
                   className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent/80"
                 >
-                  <CalendarClock className="h-3.5 w-3.5" /> View in Sessions
+                  <BarChart3 className="h-3.5 w-3.5" /> View Stats in Dashboard
                 </Link>
               </div>
             </section>
@@ -571,18 +571,19 @@ function ShareTest() {
 
           <section className="card-surface p-5 rounded-2xl">
             <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Session Reactions & Review
+              <BarChart3 className="h-4 w-4 text-primary" /> Live Stats in Dashboard
             </h3>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               Once users complete the test, their reaction scores (valence, intensity, emotion
-              categories) are immediately computed by the analytics service and logged with timestamps.
+              categories) are immediately computed by the analytics service. You can review them on
+              the Product Owner Dashboard and ask the AI agent questions about participant feedback.
             </p>
             <div className="mt-4">
               <Link
-                to="/sessions"
+                to="/dashboard"
                 className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
               >
-                View all sessions <ArrowRight className="h-3.5 w-3.5" />
+                Go to Dashboard <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </section>

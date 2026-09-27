@@ -28,7 +28,7 @@ export const Route = createFileRoute("/sessions")({
       {
         name: "description",
         content:
-          "Manage video testing sessions, share test links, and review participant reaction counts.",
+          "Manage video testing sessions, review participant reaction counts, and open dashboards.",
       },
     ],
   }),
@@ -253,10 +253,19 @@ export function SessionsPage() {
                               params={{ sessionId: s.id }}
                               target="_blank"
                               title="Open Link as Participant"
+                              className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
+                            >
+                              <ExternalLink className="h-3 w-3 text-primary" />
+                              <span>Participant</span>
+                            </Link>
+
+                            {/* View in Dashboard */}
+                            <Link
+                              to="/dashboard"
+                              search={{ session: s.id }}
                               className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                             >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                              <span>Open Test</span>
+                              View Stats <ArrowRight className="h-3 w-3" />
                             </Link>
                           </div>
                         </td>
