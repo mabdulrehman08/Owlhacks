@@ -24,7 +24,7 @@ import { listSessions, type Session } from "@/lib/api";
 export const Route = createFileRoute("/sessions")({
   head: () => ({
     meta: [
-      { title: "Test Sessions | ReactionLens" },
+      { title: "Test Sessions | Read The Room" },
       {
         name: "description",
         content:
@@ -260,7 +260,7 @@ export function SessionsPage() {
 
                             {/* View in Dashboard */}
                             <Link
-                              to="/"
+                              to="/dashboard"
                               search={{ session: s.id }}
                               className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                             >

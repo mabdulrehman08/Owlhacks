@@ -26,7 +26,7 @@ import { AppShell } from "@/components/AppShell";
 export const Route = createFileRoute("/live")({
   head: () => ({
     meta: [
-      { title: "Live Facial Expression Tracker | ReactionLens" },
+      { title: "Live Facial Expression Tracker | Read The Room" },
       {
         name: "description",
         content:

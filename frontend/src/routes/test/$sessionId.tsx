@@ -35,7 +35,7 @@ import logo from "@/assets/logo.png";
 export const Route = createFileRoute("/test/$sessionId")({
   head: () => ({
     meta: [
-      { title: "User Testing Session | ReactionLens" },
+      { title: "User Testing Session | Read The Room" },
       {
         name: "description",
         content: "Participant test portal: watch test video and record live reactions.",
@@ -416,9 +416,9 @@ export function ParticipantTestPage() {
       <header className="border-b border-border bg-card/90 px-6 py-4 backdrop-blur sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="ReactionLens" width={30} height={30} className="h-7 w-7" />
+            <img src={logo} alt="Read The Room" width={30} height={30} className="h-7 w-7" />
             <div>
-              <span className="font-display font-semibold text-sm">ReactionLens Participant Test</span>
+              <span className="font-display font-semibold text-sm">Read The Room Participant Test</span>
               <p className="text-xs text-muted-foreground">
                 Testing:{" "}
                 <span className="font-semibold text-foreground">
@@ -859,7 +859,7 @@ export function ParticipantTestPage() {
             {/* Direct Handoff for Demo / Local Presentation */}
             <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
-                to="/"
+                to="/dashboard"
                 search={{ session: sessionId }}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-pop hover:bg-primary/90"
               >
