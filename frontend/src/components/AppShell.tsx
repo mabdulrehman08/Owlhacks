@@ -1,31 +1,46 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { BarChart3, CalendarClock, Info, Link2, Settings, Share2, ChevronDown } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  CalendarClock,
+  ExternalLink,
+  Info,
+  PlusCircle,
+  Video,
+} from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: BarChart3 },
   { to: "/sessions", label: "Sessions", icon: CalendarClock },
-  { to: "/share", label: "Share Test", icon: Link2 },
-  { to: "/setup", label: "Setup", icon: Settings },
+  { to: "/share", label: "Submit Video & Test", icon: PlusCircle },
+  { to: "/live", label: "Live Face Tracker", icon: Activity },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex max-w-[1500px]">
-        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 lg:flex">
+        {/* Sidebar */}
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 lg:flex">
           <Link to="/" className="mb-8 flex items-center gap-2.5 px-2">
             <img src={logo} alt="ReactionLens" width={32} height={32} className="h-8 w-8" />
-            <span className="font-display text-lg font-semibold">ReactionLens</span>
+            <div>
+              <span className="font-display text-lg font-bold">ReactionLens</span>
+              <span className="block text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                Product Owner Portal
+              </span>
+            </div>
           </Link>
-          <nav className="flex flex-col gap-1">
+
+          <nav className="flex flex-col gap-1.5">
             {nav.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
                 activeOptions={{ exact: to === "/" }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/60 data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground"
+                className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/60 data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground"
               >
                 <Icon className="h-4.5 w-4.5" />
                 {label}
@@ -33,52 +48,44 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <div className="mt-auto space-y-4">
-            <div className="rounded-xl bg-muted p-3.5 text-xs leading-relaxed text-muted-foreground">
-              <Info className="mb-2 h-4 w-4" />
-              We detect observable expression changes (e.g. smiles, surprise, confusion). This is not
-              mind reading.
-            </div>
-            <div className="flex items-center gap-2.5 border-t border-sidebar-border pt-4">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-                JD
-              </span>
-              <div className="text-xs">
-                <p className="font-semibold">Jordan Diaz</p>
-                <p className="text-muted-foreground">Acme Co.</p>
-              </div>
-              <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground" />
+          <div className="mt-auto space-y-3">
+            <div className="rounded-xl border border-sidebar-border bg-card/50 p-3 text-xs leading-relaxed text-muted-foreground">
+              <Info className="mb-1.5 h-4 w-4 text-primary" />
+              Facial expression signals (joy, surprise, frustration, confusion) are detected locally
+              via MediaPipe vision models.
             </div>
           </div>
         </aside>
 
+        {/* Main Content Area */}
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-20 flex flex-wrap items-center gap-4 border-b border-border bg-card/85 px-5 py-4 backdrop-blur">
+          {/* Header */}
+          <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-4 border-b border-border bg-card/85 px-6 py-3.5 backdrop-blur">
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Project</p>
-              <h2 className="truncate text-base font-semibold">Checkout Redesign Concept</h2>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Platform
+              </span>
+              <h2 className="truncate text-sm font-semibold">Video Testing & Reaction Analytics</h2>
             </div>
-            <div className="ml-auto flex items-center gap-3">
-              <div className="hidden items-center sm:flex">
-                {["JD", "MK", "AS"].map((i, idx) => (
-                  <span
-                    key={i}
-                    className="grid h-8 w-8 place-items-center rounded-full border-2 border-card bg-accent text-[11px] font-semibold text-accent-foreground"
-                    style={{ marginLeft: idx ? -8 : 0 }}
-                  >
-                    {i}
-                  </span>
-                ))}
-              </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to="/test/demo"
+                target="_blank"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted shadow-sm transition-colors"
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-primary" /> Open Link as Participant
+              </Link>
               <Link
                 to="/share"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-pop transition-colors hover:bg-primary/90"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-pop transition-colors hover:bg-primary/90"
               >
-                <Share2 className="h-4 w-4" /> Share Test
+                <PlusCircle className="h-3.5 w-3.5" /> Create Test
               </Link>
             </div>
           </header>
 
+          {/* Mobile Nav */}
           <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-3 py-2 lg:hidden">
             {nav.map(({ to, label }) => (
               <Link
@@ -92,7 +99,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <main className="px-5 py-6">{children}</main>
+          <main className="px-6 py-6">{children}</main>
         </div>
       </div>
     </div>

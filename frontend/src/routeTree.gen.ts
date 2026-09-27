@@ -10,13 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LiveRouteImport } from './routes/live'
+import { Route as ReactRouteImport } from './routes/react'
 import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as ShareRouteImport } from './routes/share'
+import { Route as TestSessionIdRouteImport } from './routes/test/$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReactRoute = ReactRouteImport.update({
+  id: '/react',
+  path: '/react',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionsRoute = SessionsRouteImport.update({
@@ -34,39 +47,78 @@ const ShareRoute = ShareRouteImport.update({
   path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestSessionIdRoute = TestSessionIdRouteImport.update({
+  id: '/test/$sessionId',
+  path: '/test/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/live': typeof LiveRoute
+  '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
   '/share': typeof ShareRoute
+  '/test/$sessionId': typeof TestSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/live': typeof LiveRoute
+  '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
   '/share': typeof ShareRoute
+  '/test/$sessionId': typeof TestSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/live': typeof LiveRoute
+  '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
   '/share': typeof ShareRoute
+  '/test/$sessionId': typeof TestSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sessions' | '/setup' | '/share'
+  fullPaths:
+    | '/'
+    | '/live'
+    | '/react'
+    | '/sessions'
+    | '/setup'
+    | '/share'
+    | '/test/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sessions' | '/setup' | '/share'
-  id: '__root__' | '/' | '/sessions' | '/setup' | '/share'
+  to:
+    | '/'
+    | '/live'
+    | '/react'
+    | '/sessions'
+    | '/setup'
+    | '/share'
+    | '/test/$sessionId'
+  id:
+    | '__root__'
+    | '/'
+    | '/live'
+    | '/react'
+    | '/sessions'
+    | '/setup'
+    | '/share'
+    | '/test/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LiveRoute: typeof LiveRoute
+  ReactRoute: typeof ReactRoute
   SessionsRoute: typeof SessionsRoute
   SetupRoute: typeof SetupRoute
   ShareRoute: typeof ShareRoute
+  TestSessionIdRoute: typeof TestSessionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,6 +128,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/react': {
+      id: '/react'
+      path: '/react'
+      fullPath: '/react'
+      preLoaderRoute: typeof ReactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sessions': {
@@ -99,14 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/test/$sessionId': {
+      id: '/test/$sessionId'
+      path: '/test/$sessionId'
+      fullPath: '/test/$sessionId'
+      preLoaderRoute: typeof TestSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LiveRoute: LiveRoute,
+  ReactRoute: ReactRoute,
   SessionsRoute: SessionsRoute,
   SetupRoute: SetupRoute,
   ShareRoute: ShareRoute,
+  TestSessionIdRoute: TestSessionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
