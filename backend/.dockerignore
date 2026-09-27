@@ -1,0 +1,11 @@
+.env
+*.db
+__pycache__/
+*.py[cod]
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+API.md
+.DS_Store

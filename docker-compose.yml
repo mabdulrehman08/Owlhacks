@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    # Port is published so the detection side can POST reactions straight to
+    # localhost:8000 and so /docs stays reachable; the browser app does not use it.
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: ./backend/.env
+        required: false
+    volumes:
+      - backend-data:/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Read at runtime by the /api proxy in src/server.ts. Resolvable only
+      # inside the compose network, which is why the browser never sees it.
+      API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:

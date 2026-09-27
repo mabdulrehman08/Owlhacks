@@ -1,40 +1,40 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import {
+  ArrowRight,
+  BarChart3,
   Camera,
   Check,
   CheckCircle2,
   Copy,
+  ExternalLink,
   FileText,
-  Globe,
   Info,
   Link2,
-  Lock,
-  Mail,
   Play,
-  QrCode,
-  Sun,
+  PlusCircle,
+  Sparkles,
   Upload,
-  Users,
+  Video,
   X,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import preview from "@/assets/session-frame.jpg";
+import { createSession, type Session } from "@/lib/api";
 
 export const Route = createFileRoute("/share")({
   head: () => ({
     meta: [
-      { title: "Create a Shareable Test | ReactionLens" },
+      { title: "Submit Video & Create Test | ReactionLens" },
       {
         name: "description",
         content:
-          "Upload a video, set the test details, and generate a shareable link so participants can record their reactions.",
+          "Product owners upload or submit testable video content and generate unique participant links for reaction tracking.",
       },
-      { property: "og:title", content: "Create a Shareable Test | ReactionLens" },
+      { property: "og:title", content: "Submit Video & Create Test | ReactionLens" },
       {
         property: "og:description",
         content:
-          "Product owners upload testable content and send a link to users and testers — no account required.",
+          "Product owners submit video content and send generated links to users and testers.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -43,292 +43,337 @@ export const Route = createFileRoute("/share")({
   component: ShareTest,
 });
 
-const audiences = ["General consumers", "Existing customers", "Internal team", "Designers & researchers"];
-
-const visibility = [
-  { id: "link", icon: Globe, title: "Anyone with the link", sub: "No account required" },
-  { id: "invite", icon: Link2, title: "Invite only", sub: "Only people with the link can participate" },
-  { id: "private", icon: Lock, title: "Private (team only)", sub: "Only members of your workspace" },
-];
 
 const steps = [
-  { icon: FileText, title: "Give Consent", body: "Participants review a short consent notice about facial reaction analysis." },
-  { icon: Camera, title: "Allow Camera Access", body: "They enable their camera so we can detect facial expressions (processed in real time, not stored as video)." },
-  { icon: Sun, title: "Lighting Check", body: "A quick check ensures good lighting for accurate results." },
-  { icon: Play, title: "Watch Your Video", body: "They watch your content and their reactions are recorded as they go." },
-  { icon: CheckCircle2, title: "Submit", body: "The session is complete! Their reactions are securely analyzed and added to your project results." },
+  {
+    icon: FileText,
+    title: "1. Consent & Prep",
+    body: "Participants review a short consent notice about observable facial reactions.",
+  },
+  {
+    icon: Camera,
+    title: "2. Camera Check",
+    body: "They enable their webcam; MediaPipe validates face visibility and lighting in real-time.",
+  },
+  {
+    icon: Play,
+    title: "3. Watch Your Video",
+    body: "They watch your submitted video while client-side blendshapes measure engagement and emotions.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "4. Receive Stats in Dashboard",
+    body: "Reactions are securely saved and the Product Owner inspects intensity graphs, top moments, and AI chat.",
+  },
 ];
 
 function ShareTest() {
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<{ name: string; size: string } | null>({
-    name: "checkout-concept-v1.mp4",
-    size: "1:42 · 128 MB",
-  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("Checkout Redesign Concept");
   const [description, setDescription] = useState(
-    "We're testing a new checkout experience. Watch the short video and share your honest reactions.",
+    "We're testing a new checkout experience. Watch the short video and share your honest reactions."
   );
-  const [audience, setAudience] = useState(audiences[0]);
-  const [who, setWho] = useState("link");
-  const [copied, setCopied] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
 
-  const link = "https://app.reactionlens.com/t/ck9f2a7b3";
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdSession, setCreatedSession] = useState<Session | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
+
+  const testLink = createdSession
+    ? `${origin}/test/${createdSession.id}`
+    : `${origin}/test/demo`;
+
+  async function handleCreateTest(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const session = await createSession({
+        name: name.trim(),
+        video_url: videoUrl || undefined,
+      });
+      setCreatedSession(session);
+    } catch (err: any) {
+      console.error("Failed to create session:", err);
+      alert("Failed to create session: " + (err?.message || String(err)));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <AppShell>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        {/* Main Column */}
+        <div className="space-y-6">
           <div>
-            <h1 className="text-2xl font-semibold">Create a Shareable Test</h1>
+            <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+              <span>Product Owner Portal</span>
+            </div>
+            <h1 className="text-2xl font-bold">Submit Video & Create Test Link</h1>
             <p className="text-sm text-muted-foreground">
-              Upload your content, set up a few details, and generate a shareable link for participants.
+              Upload or configure testable video content, then generate a unique shareable link for
+              participants. The recorded reactions will stream directly to your Product Owner
+              dashboard.
             </p>
           </div>
 
-          <section className="card-surface p-5">
-            <header className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2.5 text-base font-semibold">
-                <Num>1</Num> Upload Testable Content
-              </h2>
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Info className="h-4 w-4" /> Videos for now
+          {/* Quick Active Link Box */}
+          <div className="card-surface p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 border border-primary/30 bg-primary/5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                <ExternalLink className="h-5 w-5" />
               </span>
-            </header>
-
-            <div className="grid gap-4 rounded-2xl border border-dashed border-input p-4 md:grid-cols-2">
-              <button
-                onClick={() => fileInput.current?.click()}
-                className="flex flex-col items-center justify-center gap-2 rounded-xl px-4 py-8 text-center transition-colors hover:bg-muted"
-              >
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-info-soft text-primary">
-                  <Upload className="h-5 w-5" />
-                </span>
-                <span className="text-sm font-semibold">Drag and drop a video here</span>
-                <span className="text-xs text-primary">or click to browse</span>
-                <span className="mt-2 text-[11px] text-muted-foreground">
-                  MP4, MOV, or WebM · Max 2 GB · Recommended 16:9 (1080p) · 15s – 10min
-                </span>
-              </button>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) setFile({ name: f.name, size: `${(f.size / 1_048_576).toFixed(0)} MB` });
-                }}
-              />
-
-              {file && (
-                <div>
-                  <div className="relative overflow-hidden rounded-xl border border-border">
-                    <img src={preview} alt="" width={1280} height={720} loading="lazy" className="aspect-video w-full object-cover" />
-                    <span className="absolute inset-0 grid place-items-center">
-                      <span className="grid h-11 w-11 place-items-center rounded-full bg-card/90">
-                        <Play className="h-5 w-5" />
-                      </span>
-                    </span>
-                  </div>
-                  <div className="mt-2 flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">{file.size}</p>
-                    </div>
-                    <button
-                      onClick={() => setFile(null)}
-                      aria-label="Remove video"
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-border hover:bg-muted"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              <div>
+                <p className="text-xs font-semibold text-foreground">
+                  Active Participant Testing Link {createdSession ? "(Newly Created)" : "(Demo Test)"}
+                </p>
+                <p className="text-xs text-muted-foreground font-mono">{testLink}</p>
+              </div>
             </div>
-          </section>
+            <div className="flex items-center gap-2">
+              <Link
+                to={createdSession ? `/test/${createdSession.id}` : "/test/demo"}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Open Link as Participant
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(testLink);
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 2000);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-input bg-card px-3 py-2 text-xs font-semibold hover:bg-muted"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-positive" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? "Copied" : "Copy Link"}
+              </button>
+            </div>
+          </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <section className="card-surface p-5">
-              <h2 className="mb-4 flex items-center gap-2.5 text-base font-semibold">
-                <Num>2</Num> Test Details
+          {/* Form */}
+          <form onSubmit={handleCreateTest} className="space-y-6">
+            {/* Step 1: Submit Content */}
+            <section className="card-surface p-5 rounded-2xl">
+              <header className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2.5 text-base font-semibold">
+                  <Num>1</Num> Submit Testable Video Content
+                </h2>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Video className="h-4 w-4 text-primary" /> Supported: MP4, WebM
+                </span>
+              </header>
+
+              {/* Video source inputs */}
+
+                <div className="rounded-xl border border-dashed border-input p-6 text-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setUploadedFile({
+                          name: f.name,
+                          size: `${(f.size / 1_048_576).toFixed(1)} MB`,
+                        });
+                        setVideoUrl(URL.createObjectURL(f));
+                      }
+                    }}
+                  />
+                  {uploadedFile ? (
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-xl max-w-md mx-auto">
+                      <div className="flex items-center gap-3">
+                        <Video className="h-5 w-5 text-primary" />
+                        <div className="text-left">
+                          <p className="text-xs font-semibold">{uploadedFile.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{uploadedFile.size}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setUploadedFile(null)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 mx-auto"
+                    >
+                      <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+                        <Upload className="h-5 w-5" />
+                      </span>
+                      <span className="text-sm font-semibold">Choose video file to test</span>
+                      <span className="text-xs text-muted-foreground">MP4, MOV, WebM up to 500 MB</span>
+                    </button>
+                  )}
+                </div>
+            </section>
+
+            {/* Step 2: Test Details */}
+            <section className="card-surface p-5 rounded-2xl space-y-4">
+              <h2 className="flex items-center gap-2.5 text-base font-semibold">
+                <Num>2</Num> Test Details & Instructions
               </h2>
-              <label className="block text-xs font-medium">
-                Test Name <span className="text-destructive">*</span>
+
+              <div>
+                <label className="block text-xs font-medium">
+                  Test Title <span className="text-destructive">*</span>
+                </label>
                 <input
+                  required
                   value={name}
                   maxLength={100}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm outline-none focus:border-ring"
+                  placeholder="e.g. Checkout Redesign Concept"
+                  className="mt-1.5 w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm outline-none focus:border-ring"
                 />
-              </label>
-              <p className="mt-1 text-right text-[11px] text-muted-foreground">{name.length}/100</p>
+              </div>
 
-              <label className="mt-2 block text-xs font-medium">
-                Description
+              <div>
+                <label className="block text-xs font-medium">Instructions for Testers</label>
                 <textarea
                   value={description}
                   maxLength={500}
                   rows={3}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1.5 w-full resize-none rounded-xl border border-input bg-card px-3 py-2.5 text-sm outline-none focus:border-ring"
+                  placeholder="Explain what the participant should expect or focus on..."
+                  className="mt-1.5 w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm outline-none focus:border-ring"
                 />
-              </label>
-              <p className="mt-1 text-right text-[11px] text-muted-foreground">{description.length}/500</p>
+              </div>
 
-              <label className="mt-2 block text-xs font-medium">
-                Audience
-                <span className="relative mt-1.5 flex items-center">
-                  <Users className="absolute left-3 h-4 w-4 text-muted-foreground" />
-                  <select
-                    value={audience}
-                    onChange={(e) => setAudience(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-input bg-card py-2.5 pl-9 pr-3 text-sm outline-none focus:border-ring"
-                  >
-                    {audiences.map((a) => (
-                      <option key={a}>{a}</option>
-                    ))}
-                  </select>
+              {/* Submit Button */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !name.trim()}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-pop hover:bg-primary/90 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  {isSubmitting ? "Creating Session..." : "Create Test & Generate Participant Link"}
+                </button>
+              </div>
+            </section>
+          </form>
+
+          {/* Step 3: Generated Link Card */}
+          {createdSession && (
+            <section className="card-surface p-5 rounded-2xl border-2 border-primary/30 bg-primary/5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-primary font-semibold">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>Test Created Successfully!</span>
+                </div>
+                <span className="text-xs text-muted-foreground font-mono">
+                  Session ID: {createdSession.id}
                 </span>
-              </label>
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                Who are you looking to get feedback from?
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Your test is ready. Send this link to participants so they can watch your video and
+                record their reactions.
               </p>
-            </section>
 
-            <section className="card-surface p-5">
-              <h2 className="mb-4 flex items-center gap-2.5 text-base font-semibold">
-                <Num>3</Num> Share Settings
-              </h2>
-              <p className="mb-3 text-xs font-medium">Who can take this test?</p>
-              <div className="space-y-2.5">
-                {visibility.map((v) => {
-                  const active = who === v.id;
-                  return (
-                    <button
-                      key={v.id}
-                      onClick={() => setWho(v.id)}
-                      className={`flex w-full items-center gap-3 rounded-2xl border p-3.5 text-left transition-colors ${
-                        active ? "border-primary bg-info-soft" : "border-border hover:bg-muted"
-                      }`}
-                    >
-                      <span
-                        className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 ${
-                          active ? "border-primary" : "border-input"
-                        }`}
-                      >
-                        {active && <span className="h-2 w-2 rounded-full bg-primary" />}
-                      </span>
-                      <v.icon className="h-5 w-5 shrink-0 text-muted-foreground" />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold">{v.title}</span>
-                        <span className="block text-xs text-muted-foreground">{v.sub}</span>
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  readOnly
+                  value={testLink}
+                  className="min-w-0 flex-1 rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm font-mono"
+                />
+                <button
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(testLink);
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copied" : "Copy Link"}
+                </button>
+              </div>
+
+              {/* Direct Handoff Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  to={`/test/${createdSession.id}`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-4 py-2 text-xs font-semibold hover:bg-muted"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 text-primary" /> Open Link as Participant
+                </Link>
+                <Link
+                  to="/"
+                  search={{ session: createdSession.id }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent/80"
+                >
+                  <BarChart3 className="h-3.5 w-3.5" /> View Stats in Dashboard
+                </Link>
               </div>
             </section>
-          </div>
-
-          <section className="card-surface p-5">
-            <h2 className="flex items-center gap-2.5 text-base font-semibold">
-              <Num>4</Num> Generate Shareable Link
-            </h2>
-            <p className="ml-9 text-xs text-muted-foreground">
-              Your test is ready to share. Send this link to participants to start collecting reactions.
-            </p>
-
-            <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
-              <div>
-                <p className="text-xs font-medium">Test Link</p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                  <input
-                    readOnly
-                    value={link}
-                    className="min-w-0 flex-1 rounded-xl border border-input bg-muted px-3 py-2.5 text-sm"
-                  />
-                  <button
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(link);
-                      setCopied(true);
-                      window.setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? "Copied" : "Copy Link"}
-                  </button>
-                </div>
-                <p className="mt-4 text-xs font-medium">Share via</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {[
-                    { icon: Mail, label: "Email" },
-                    { icon: Link2, label: "Copy Link" },
-                    { icon: Globe, label: "LinkedIn" },
-                    { icon: Globe, label: "X (Twitter)" },
-                  ].map((s) => (
-                    <button
-                      key={s.label}
-                      className="inline-flex items-center gap-2 rounded-xl border border-border px-3.5 py-2.5 text-sm hover:bg-muted"
-                    >
-                      <s.icon className="h-4 w-4 text-muted-foreground" /> {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-2 rounded-2xl border border-border p-4">
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <QrCode className="h-4 w-4" /> QR Code
-                </span>
-                <QrCode className="h-24 w-24" strokeWidth={1} />
-                <span className="text-[11px] text-muted-foreground">Scan to open test</span>
-              </div>
-            </div>
-          </section>
+          )}
         </div>
 
-        <div className="space-y-5">
-          <section className="card-surface p-5">
-            <h2 className="text-base font-semibold">Participant Experience</h2>
-            <p className="text-xs text-muted-foreground">
-              Here's what participants will experience when they open your test link.
+        {/* Sidebar Info Column */}
+        <div className="space-y-6">
+          <section className="card-surface p-5 rounded-2xl">
+            <h2 className="text-base font-semibold flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" /> How the User Test Works
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              What your participants experience when they open the test link:
             </p>
             <ol className="mt-4 space-y-4">
-              {steps.map((s, i) => (
+              {steps.map((s) => (
                 <li key={s.title} className="flex gap-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-info-soft text-xs font-semibold text-primary">
-                    {i + 1}
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-primary">
+                    <s.icon className="h-4.5 w-4.5" />
                   </span>
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted">
-                    <s.icon className="h-4 w-4 text-muted-foreground" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold">{s.title}</span>
-                    <span className="block text-xs leading-relaxed text-muted-foreground">{s.body}</span>
-                  </span>
+                  <div>
+                    <span className="block text-xs font-semibold">{s.title}</span>
+                    <span className="block text-[11px] leading-relaxed text-muted-foreground">
+                      {s.body}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ol>
           </section>
 
-          <section className="card-surface p-5">
-            <h3 className="text-sm font-semibold">Upload testable content: videos for now</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              We currently support video content (MP4, MOV, WebM). More content types (e.g. images,
-              prototypes) are coming soon.
+          <section className="card-surface p-5 rounded-2xl">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-primary" /> Live Stats in Dashboard
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Once users complete the test, their reaction scores (valence, intensity, emotion
+              categories) are immediately computed by the analytics service. You can review them on
+              the Product Owner Dashboard and ask the AI agent questions about participant feedback.
             </p>
-          </section>
-
-          <section className="card-surface p-5">
-            <h3 className="text-sm font-semibold">Observable facial reactions</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              ReactionLens detects observable changes in facial expressions (e.g. smiles, surprise,
-              confusion). This provides signals about engagement and emotional response — not a direct
-              measure of thoughts or intent.
-            </p>
+            <div className="mt-4">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
+              >
+                Go to Dashboard <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </section>
         </div>
       </div>
@@ -338,7 +383,7 @@ function ShareTest() {
 
 function Num({ children }: { children: React.ReactNode }) {
   return (
-    <span className="grid h-7 w-7 place-items-center rounded-full bg-info-soft text-xs font-semibold text-primary">
+    <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
       {children}
     </span>
   );
