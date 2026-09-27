@@ -10,6 +10,8 @@ services:
         required: false
     volumes:
       - backend-data:/data
+      # Uploaded videos; without this they vanish whenever the backend is rebuilt.
+      - backend-videos:/app/data/videos
 
   frontend:
     build: ./frontend
@@ -25,3 +27,4 @@ services:
 
 volumes:
   backend-data:
+  backend-videos:

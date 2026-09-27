@@ -175,7 +175,7 @@ export function SessionsPage() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-border text-xs text-muted-foreground">
-                    <th className="pb-3 font-medium">Session / Test Name</th>
+                    <th className="pb-3 font-medium">Video / Test Name</th>
                     <th className="pb-3 font-medium">Status</th>
                     <th className="pb-3 font-medium">Reactions</th>
                     <th className="pb-3 font-medium">Created</th>
@@ -193,14 +193,34 @@ export function SessionsPage() {
                     return (
                       <tr key={s.id} className="hover:bg-muted/40 transition-colors">
                         <td className="py-3.5 pr-4">
-                          <div>
-                            <span className="font-semibold text-foreground">
-                              {s.name || `Session ${s.id}`}
+                          <Link
+                            to="/sessions/$sessionId"
+                            params={{ sessionId: s.id }}
+                            className="group flex items-center gap-3"
+                          >
+                            {/* First frame of the tested video as a thumbnail */}
+                            <span className="relative grid h-12 w-20 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted">
+                              {s.video_url ? (
+                                <video
+                                  src={`${s.video_url}#t=0.5`}
+                                  preload="metadata"
+                                  muted
+                                  playsInline
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <Video className="h-4 w-4 text-muted-foreground" />
+                              )}
                             </span>
-                            <span className="block text-xs font-mono text-muted-foreground">
-                              ID: {s.id}
+                            <span>
+                              <span className="font-semibold text-foreground group-hover:text-primary group-hover:underline">
+                                {s.name || `Session ${s.id}`}
+                              </span>
+                              <span className="block text-xs font-mono text-muted-foreground">
+                                ID: {s.id}
+                              </span>
                             </span>
-                          </div>
+                          </Link>
                         </td>
 
                         <td className="py-3.5 pr-4">

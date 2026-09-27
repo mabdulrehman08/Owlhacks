@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { ReactionRecorder } from "@/components/ReactionRecorder";
 import { createSession, uploadVideo, type Session } from "@/lib/api";
 
 export const Route = createFileRoute("/share")({
@@ -185,77 +186,80 @@ function ShareTest() {
           <span className="eyebrow">New test</span>
           <h1 className="mt-1 text-2xl font-bold">Test a video</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Add your video, give it a name, and get one link to send to viewers. Their reactions
-            show up on the test's dashboard.
+            Add your video and give it a name. Then record reactions right here with the face
+            tracker, or send the link to other viewers. Everything shows up under Sessions.
           </p>
         </div>
 
         {createdSession ? (
           /* Done: the link to send */
-          <section className="card-surface overflow-hidden rounded-2xl">
-            <div className="flex items-center gap-3 border-b border-border bg-positive-soft px-6 py-5">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-positive text-white">
-                <Check className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <h2 className="text-lg font-semibold">Your test is ready</h2>
-                <p className="truncate text-sm text-muted-foreground">{createdSession.name}</p>
-              </div>
-            </div>
-
-            <div className="space-y-5 p-6">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">
-                  Send this link to your viewers
-                </label>
-                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                  <input
-                    readOnly
-                    value={testLink}
-                    onFocus={(e) => e.currentTarget.select()}
-                    className="min-w-0 flex-1 rounded-xl border border-input bg-muted/40 px-3.5 py-3 font-mono text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(testLink);
-                      setCopied(true);
-                      window.setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? "Copied" : "Copy link"}
-                  </button>
+          <>
+            <section className="card-surface overflow-hidden rounded-2xl">
+              <div className="flex items-center gap-3 border-b border-border bg-positive-soft px-6 py-5">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-positive text-white">
+                  <Check className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold">Your test is ready</h2>
+                  <p className="truncate text-sm text-muted-foreground">{createdSession.name}</p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Link
-                  to="/sessions/$sessionId"
-                  params={{ sessionId: createdSession.id }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted"
-                >
-                  <BarChart3 className="h-4 w-4 text-primary" /> View dashboard
-                </Link>
-                <Link
-                  to="/test/$sessionId"
-                  params={{ sessionId: createdSession.id }}
-                  target="_blank"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted"
-                >
-                  <ExternalLink className="h-4 w-4 text-primary" /> Try it yourself
-                </Link>
-                <button
-                  type="button"
-                  onClick={startOver}
-                  className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
-                >
-                  <PlusCircle className="h-4 w-4" /> Test another video
-                </button>
+              <div className="space-y-5 p-6">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">
+                    Want more viewers? Send them this link
+                  </label>
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      readOnly
+                      value={testLink}
+                      onFocus={(e) => e.currentTarget.select()}
+                      className="min-w-0 flex-1 rounded-xl border border-input bg-muted/40 px-3.5 py-3 font-mono text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard?.writeText(testLink);
+                        setCopied(true);
+                        window.setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copied ? "Copied" : "Copy link"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Link
+                    to="/sessions/$sessionId"
+                    params={{ sessionId: createdSession.id }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted"
+                  >
+                    <BarChart3 className="h-4 w-4 text-primary" /> View dashboard
+                  </Link>
+                  <Link
+                    to="/test/$sessionId"
+                    params={{ sessionId: createdSession.id }}
+                    target="_blank"
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold hover:bg-muted"
+                  >
+                    <ExternalLink className="h-4 w-4 text-primary" /> Open viewer page
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={startOver}
+                    className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    <PlusCircle className="h-4 w-4" /> Test another video
+                  </button>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+            <ReactionRecorder key={createdSession.id} session={createdSession} />
+          </>
         ) : (
           /* Form */
           <form onSubmit={handleCreateTest} className="card-surface space-y-6 rounded-2xl p-6">
@@ -407,7 +411,7 @@ function ShareTest() {
 
             <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
-                Viewers do a quick camera check, then watch. Only reactions are shared.
+                Next you can record reactions here with your camera. Only reactions are saved.
               </p>
               <button
                 type="submit"

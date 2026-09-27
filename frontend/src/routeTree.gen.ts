@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as LiveRouteImport } from './routes/live'
 import { Route as ReactRouteImport } from './routes/react'
 import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as SetupRouteImport } from './routes/setup'
@@ -21,11 +20,6 @@ import { Route as TestSessionIdRouteImport } from './routes/test/$sessionId'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LiveRoute = LiveRouteImport.update({
-  id: '/live',
-  path: '/live',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReactRoute = ReactRouteImport.update({
@@ -61,7 +55,6 @@ const TestSessionIdRoute = TestSessionIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/live': typeof LiveRoute
   '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
@@ -71,7 +64,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/live': typeof LiveRoute
   '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
@@ -82,7 +74,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/live': typeof LiveRoute
   '/react': typeof ReactRoute
   '/sessions': typeof SessionsRoute
   '/setup': typeof SetupRoute
@@ -94,7 +85,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/live'
     | '/react'
     | '/sessions'
     | '/setup'
@@ -104,7 +94,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/live'
     | '/react'
     | '/sessions'
     | '/setup'
@@ -114,7 +103,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/live'
     | '/react'
     | '/sessions'
     | '/setup'
@@ -125,7 +113,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LiveRoute: typeof LiveRoute
   ReactRoute: typeof ReactRoute
   SessionsRoute: typeof SessionsRoute
   SetupRoute: typeof SetupRoute
@@ -141,13 +128,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/live': {
-      id: '/live'
-      path: '/live'
-      fullPath: '/live'
-      preLoaderRoute: typeof LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/react': {
@@ -197,7 +177,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  LiveRoute: LiveRoute,
   ReactRoute: ReactRoute,
   SessionsRoute: SessionsRoute,
   SetupRoute: SetupRoute,

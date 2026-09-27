@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
-  Activity,
   CalendarClock,
   ExternalLink,
   Info,
@@ -14,7 +13,6 @@ import { Wordmark } from "@/components/Wordmark";
 const nav = [
   { to: "/sessions", label: "Sessions", icon: CalendarClock },
   { to: "/share", label: "Submit Video & Test", icon: PlusCircle },
-  { to: "/live", label: "Live Face Tracker", icon: Activity },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
