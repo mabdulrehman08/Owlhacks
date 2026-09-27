@@ -67,7 +67,7 @@ export function SessionsPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 eyebrow mb-1">
               <span>Product Owner Sessions</span>
             </div>
             <h1 className="text-2xl font-bold">Video Test Sessions</h1>
@@ -95,7 +95,7 @@ export function SessionsPage() {
             </span>
             <div>
               <p className="text-xs text-muted-foreground">Total Test Sessions</p>
-              <p className="text-2xl font-bold font-display">{sessions.length}</p>
+              <p className="stat-number text-2xl">{sessions.length}</p>
             </div>
           </div>
 
@@ -105,7 +105,7 @@ export function SessionsPage() {
             </span>
             <div>
               <p className="text-xs text-muted-foreground">Tested Sessions</p>
-              <p className="text-2xl font-bold font-display">{completedSessions}</p>
+              <p className="stat-number text-2xl">{completedSessions}</p>
             </div>
           </div>
 
@@ -115,7 +115,7 @@ export function SessionsPage() {
             </span>
             <div>
               <p className="text-xs text-muted-foreground">Total Reactions Captured</p>
-              <p className="text-2xl font-bold font-display">{totalReactions}</p>
+              <p className="stat-number text-2xl">{totalReactions}</p>
             </div>
           </div>
 
@@ -125,7 +125,7 @@ export function SessionsPage() {
             </span>
             <div>
               <p className="text-xs text-muted-foreground">Active Studies</p>
-              <p className="text-2xl font-bold font-display">
+              <p className="stat-number text-2xl">
                 {sessions.filter((s) => (s.reaction_count || 0) === 0).length} waiting
               </p>
             </div>

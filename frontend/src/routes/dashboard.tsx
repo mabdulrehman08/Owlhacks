@@ -481,7 +481,7 @@ export function Dashboard() {
                           Most Positive Moment
                         </span>
                       </div>
-                      <p className="mt-3 font-display text-2xl font-semibold">
+                      <p className="mt-3 stat-number text-2xl">
                         {formatTime(mostPositive.timestamp)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -509,7 +509,7 @@ export function Dashboard() {
                           Biggest Reaction
                         </span>
                       </div>
-                      <p className="mt-3 font-display text-2xl font-semibold">
+                      <p className="mt-3 stat-number text-2xl">
                         {formatTime(biggest.timestamp)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -536,7 +536,7 @@ export function Dashboard() {
                           Negative Shift
                         </span>
                       </div>
-                      <p className="mt-3 font-display text-2xl font-semibold">
+                      <p className="mt-3 stat-number text-2xl">
                         {formatTime(negativeShift.timestamp)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">

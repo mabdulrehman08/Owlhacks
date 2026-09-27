@@ -10,6 +10,7 @@ import {
   Video,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { Wordmark } from "@/components/Wordmark";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
@@ -27,10 +28,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to="/dashboard" className="mb-8 flex items-center gap-2.5 px-2">
             <img src={logo} alt="Read The Room" width={32} height={32} className="h-8 w-8" />
             <div>
-              <span className="font-display text-lg font-bold">Read The Room</span>
-              <span className="block text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                Product Owner Portal
-              </span>
+              <Wordmark className="text-lg" />
+              <span className="eyebrow block text-[10px]">Product Owner Portal</span>
             </div>
           </Link>
 
@@ -62,9 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Header */}
           <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-4 border-b border-border bg-card/85 px-6 py-3.5 backdrop-blur">
             <div className="min-w-0">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                Platform
-              </span>
+              <span className="eyebrow text-[11px]">Platform</span>
               <h2 className="truncate text-sm font-semibold">Video Testing & Reaction Analytics</h2>
             </div>
 

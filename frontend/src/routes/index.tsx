@@ -16,6 +16,7 @@ import poster from "@/assets/session-frame.jpg";
 import faceMesh from "@/assets/face-mesh.svg";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { FinalCta, PrivacySection, ProblemSection, UseCasesSection } from "@/components/landing/StorySections";
+import { Wordmark } from "@/components/Wordmark";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,7 +88,7 @@ const timelineBars = [28, 42, 55, 38, 72, 60, 85, 46, 64, 90, 50, 34];
 function FaceLandmarkOverlay() {
   const box = { x1: 530, y1: 138, x2: 820, y2: 458 };
   const arm = 28;
-  const scan = "#5eead4";
+  const scan = "#E8BC5E";
 
   return (
     <>
@@ -124,7 +125,7 @@ function Landing() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2.5">
             <img src={logo} alt="Read The Room" width={30} height={30} className="h-7.5 w-7.5" />
-            <span className="font-display text-lg font-bold tracking-tight">Read The Room</span>
+            <Wordmark className="text-lg" />
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -200,7 +201,7 @@ function Landing() {
         <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
           Know how your video
           <br />
-          <span className="bg-gradient-to-r from-primary to-[oklch(0.58_0.2_300)] bg-clip-text text-transparent">
+          <span className="text-primary">
             really lands
           </span>{" "}
           before you ship it
@@ -251,7 +252,7 @@ function Landing() {
                     <span className="h-1.5 w-1.5 rounded-full bg-positive" /> 128 reactions logged
                   </span>
                   <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#5eead4] animate-pulse" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#E8BC5E] animate-pulse" />
                     Face detected · 98%
                   </span>
                 </div>
@@ -302,7 +303,7 @@ function Landing() {
       <section id="how-it-works" className="border-t border-border bg-muted/30 py-20">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mx-auto max-w-xl text-center">
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+            <span className="eyebrow">
               How it works
             </span>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
@@ -333,7 +334,7 @@ function Landing() {
       <section id="features" className="border-t border-border py-20">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mx-auto max-w-xl text-center">
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+            <span className="eyebrow">
               Everything you need
             </span>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
@@ -368,7 +369,7 @@ function Landing() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-center sm:flex-row sm:text-left">
           <div className="flex items-center gap-2">
             <img src={logo} alt="Read The Room" width={22} height={22} className="h-5.5 w-5.5" />
-            <span className="font-display text-sm font-bold">Read The Room</span>
+            <Wordmark className="text-sm" />
           </div>
           <p className="text-xs text-muted-foreground">© 2026 Read The Room. Built for OwlHacks.</p>
         </div>

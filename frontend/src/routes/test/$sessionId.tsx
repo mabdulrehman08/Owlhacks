@@ -31,6 +31,7 @@ import {
 import { getSession, submitReactions, type Reaction, type Session } from "@/lib/api";
 import { formatTime } from "@/lib/reaction-data";
 import logo from "@/assets/logo.png";
+import { Wordmark } from "@/components/Wordmark";
 
 export const Route = createFileRoute("/test/$sessionId")({
   head: () => ({
@@ -442,7 +443,7 @@ export function ParticipantTestPage() {
           <div className="flex items-center gap-3">
             <img src={logo} alt="Read The Room" width={30} height={30} className="h-7 w-7" />
             <div>
-              <span className="font-display font-semibold text-sm">Read The Room Participant Test</span>
+              <span className="flex items-baseline gap-2 text-sm"><Wordmark /><span className="eyebrow text-[10px]">Participant test</span></span>
               <p className="text-xs text-muted-foreground">
                 Testing:{" "}
                 <span className="font-semibold text-foreground">
@@ -705,8 +706,8 @@ export function ParticipantTestPage() {
                           <YAxis domain={[0, 100]} tick={{ fontSize: 9 }} />
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              borderColor: "hsl(var(--border))",
+                              backgroundColor: "var(--card)",
+                              borderColor: "var(--border)",
                               borderRadius: "0.5rem",
                               fontSize: "11px",
                             }}
@@ -714,7 +715,7 @@ export function ParticipantTestPage() {
                           <Line
                             type="monotone"
                             dataKey="Happy"
-                            stroke="#4ade80"
+                            stroke="var(--emotion-joy)"
                             strokeWidth={2}
                             dot={false}
                             isAnimationActive={false}
@@ -722,7 +723,7 @@ export function ParticipantTestPage() {
                           <Line
                             type="monotone"
                             dataKey="Surprised"
-                            stroke="#fbbf24"
+                            stroke="var(--emotion-surprise)"
                             strokeWidth={2}
                             dot={false}
                             isAnimationActive={false}
@@ -730,7 +731,7 @@ export function ParticipantTestPage() {
                           <Line
                             type="monotone"
                             dataKey="Angry"
-                            stroke="#ef4444"
+                            stroke="var(--emotion-anger)"
                             strokeWidth={2}
                             dot={false}
                             isAnimationActive={false}
@@ -738,7 +739,7 @@ export function ParticipantTestPage() {
                           <Line
                             type="monotone"
                             dataKey="Sad"
-                            stroke="#60a5fa"
+                            stroke="var(--emotion-sadness)"
                             strokeWidth={2}
                             dot={false}
                             isAnimationActive={false}
@@ -800,21 +801,21 @@ export function ParticipantTestPage() {
 
                   {/* Emotion meters */}
                   <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-[#4ade80]">
+                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-emotion-joy">
                       <span className="text-[10px] text-muted-foreground">😄 Happy</span>
-                      <p className="font-bold text-[#4ade80] text-sm">{currentScores.Happy}%</p>
+                      <p className="font-bold text-emotion-joy text-sm">{currentScores.Happy}%</p>
                     </div>
-                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-[#fbbf24]">
+                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-emotion-surprise">
                       <span className="text-[10px] text-muted-foreground">😮 Surprised</span>
-                      <p className="font-bold text-[#fbbf24] text-sm">{currentScores.Surprised}%</p>
+                      <p className="font-bold text-emotion-surprise text-sm">{currentScores.Surprised}%</p>
                     </div>
-                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-[#ef4444]">
+                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-emotion-anger">
                       <span className="text-[10px] text-muted-foreground">😠 Frustrated</span>
-                      <p className="font-bold text-[#ef4444] text-sm">{currentScores.Angry}%</p>
+                      <p className="font-bold text-emotion-anger text-sm">{currentScores.Angry}%</p>
                     </div>
-                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-[#60a5fa]">
+                    <div className="rounded-lg bg-muted/60 p-2 text-center border-l-3 border-emotion-sadness">
                       <span className="text-[10px] text-muted-foreground">😢 Confused</span>
-                      <p className="font-bold text-[#60a5fa] text-sm">{currentScores.Sad}%</p>
+                      <p className="font-bold text-emotion-sadness text-sm">{currentScores.Sad}%</p>
                     </div>
                   </div>
                 </div>

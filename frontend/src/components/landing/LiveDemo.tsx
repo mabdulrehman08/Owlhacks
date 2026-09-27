@@ -71,7 +71,7 @@ export function LiveDemo() {
     <section id="live-demo" className="border-t border-border py-20">
       <div className="mx-auto max-w-5xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">Live demo</span>
+          <span className="eyebrow">Live demo</span>
           <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Don't take our word for it. Ask the room.
           </h2>

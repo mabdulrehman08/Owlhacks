@@ -167,7 +167,7 @@ export function ReactionTimeline({
               <span className="grid h-8 w-8 place-items-center rounded-full border border-border bg-card text-base shadow-card">
                 {emojiForType[m.type.toLowerCase()] || "😐"}
               </span>
-              <span className="rounded-md bg-accent px-1.5 py-0.5 text-[9px] font-semibold text-accent-foreground font-mono">
+              <span className="rounded-md bg-notable-soft px-1.5 py-0.5 font-mono text-[9px] font-semibold text-notable-text">
                 {formatTime(m.timestamp)}
               </span>
             </button>
@@ -227,7 +227,7 @@ export function ReactionTimeline({
                   x2={x(m.timestamp, effectiveDuration)}
                   y1={y(p.v)}
                   y2={H - PAD_B}
-                  stroke="var(--primary)"
+                  stroke="var(--notable)"
                   strokeDasharray="4 4"
                   strokeOpacity="0.5"
                   vectorEffect="non-scaling-stroke"
@@ -236,7 +236,9 @@ export function ReactionTimeline({
                   cx={x(m.timestamp, effectiveDuration)}
                   cy={y(p.v)}
                   r="5"
-                  fill="var(--primary)"
+                  fill="var(--notable)"
+                  stroke="var(--card)"
+                  strokeWidth="2"
                 />
               </g>
             );
@@ -259,7 +261,7 @@ export function ReactionTimeline({
         </div>
       </div>
 
-      <div className="flex justify-between px-1 text-[10px] font-medium text-muted-foreground">
+      <div className="flex justify-between px-1 font-mono text-[10px] text-muted-foreground">
         {ticks.map((t) => (
           <span key={t}>{formatTime(t)}</span>
         ))}

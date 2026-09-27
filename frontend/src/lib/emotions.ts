@@ -38,7 +38,7 @@ export function emotionMeta(type: string | undefined | null): EmotionMeta {
 // Literal class names so Tailwind generates them.
 export const TONE_STYLES: Record<Tone, { color: string; soft: string; text: string; bar: string }> = {
   positive: { color: "var(--positive)", soft: "bg-positive-soft", text: "text-positive", bar: "bg-positive" },
-  notable: { color: "var(--notable)", soft: "bg-notable-soft", text: "text-notable", bar: "bg-notable" },
+  notable: { color: "var(--notable)", soft: "bg-notable-soft", text: "text-notable-text", bar: "bg-notable" },
   negative: { color: "var(--negative)", soft: "bg-negative-soft", text: "text-negative", bar: "bg-negative" },
   neutral: {
     color: "var(--muted-foreground)",

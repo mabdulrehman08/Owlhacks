@@ -431,35 +431,35 @@ export function LiveTrackerPage() {
 
             {/* Current Real-time Scores */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="card-surface p-3 text-center border-l-4 border-[#4ade80]">
+              <div className="card-surface p-3 text-center border-l-4 border-emotion-joy">
                 <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   😄 Happy
                 </p>
-                <p className="text-xl font-bold font-display mt-1 text-[#4ade80]">
+                <p className="stat-number text-xl mt-1 text-emotion-joy">
                   {currentScores.Happy}%
                 </p>
               </div>
-              <div className="card-surface p-3 text-center border-l-4 border-[#fbbf24]">
+              <div className="card-surface p-3 text-center border-l-4 border-emotion-surprise">
                 <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   😮 Surprised
                 </p>
-                <p className="text-xl font-bold font-display mt-1 text-[#fbbf24]">
+                <p className="stat-number text-xl mt-1 text-emotion-surprise">
                   {currentScores.Surprised}%
                 </p>
               </div>
-              <div className="card-surface p-3 text-center border-l-4 border-[#ef4444]">
+              <div className="card-surface p-3 text-center border-l-4 border-emotion-anger">
                 <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   😠 Angry
                 </p>
-                <p className="text-xl font-bold font-display mt-1 text-[#ef4444]">
+                <p className="stat-number text-xl mt-1 text-emotion-anger">
                   {currentScores.Angry}%
                 </p>
               </div>
-              <div className="card-surface p-3 text-center border-l-4 border-[#60a5fa]">
+              <div className="card-surface p-3 text-center border-l-4 border-emotion-sadness">
                 <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   😢 Sad
                 </p>
-                <p className="text-xl font-bold font-display mt-1 text-[#60a5fa]">
+                <p className="stat-number text-xl mt-1 text-emotion-sadness">
                   {currentScores.Sad}%
                 </p>
               </div>
@@ -504,8 +504,8 @@ export function LiveTrackerPage() {
                       <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          borderColor: "hsl(var(--border))",
+                          backgroundColor: "var(--card)",
+                          borderColor: "var(--border)",
                           borderRadius: "0.75rem",
                           fontSize: "12px",
                         }}
@@ -514,7 +514,7 @@ export function LiveTrackerPage() {
                       <Line
                         type="monotone"
                         dataKey="Happy"
-                        stroke="#4ade80"
+                        stroke="var(--emotion-joy)"
                         strokeWidth={3}
                         dot={false}
                         isAnimationActive={false}
@@ -522,7 +522,7 @@ export function LiveTrackerPage() {
                       <Line
                         type="monotone"
                         dataKey="Surprised"
-                        stroke="#fbbf24"
+                        stroke="var(--emotion-surprise)"
                         strokeWidth={3}
                         dot={false}
                         isAnimationActive={false}
@@ -530,7 +530,7 @@ export function LiveTrackerPage() {
                       <Line
                         type="monotone"
                         dataKey="Angry"
-                        stroke="#ef4444"
+                        stroke="var(--emotion-anger)"
                         strokeWidth={3}
                         dot={false}
                         isAnimationActive={false}
@@ -538,7 +538,7 @@ export function LiveTrackerPage() {
                       <Line
                         type="monotone"
                         dataKey="Sad"
-                        stroke="#60a5fa"
+                        stroke="var(--emotion-sadness)"
                         strokeWidth={3}
                         dot={false}
                         isAnimationActive={false}
