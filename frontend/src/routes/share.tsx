@@ -190,7 +190,7 @@ function ShareTest() {
         {/* Main Column */}
         <div className="space-y-6">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 eyebrow mb-1">
               <span>Product Owner Portal</span>
             </div>
             <h1 className="text-2xl font-bold">Submit Video & Create Test Link</h1>
