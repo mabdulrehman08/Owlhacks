@@ -72,13 +72,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ReactionLens" },
+      { title: "Read The Room" },
       {
         name: "description",
         content:
           "Detect and review facial reactions to your video content, with a reaction timeline, key moments and an agent that explains what happened.",
       },
-      { property: "og:title", content: "ReactionLens" },
+      { property: "og:title", content: "Read The Room" },
       {
         property: "og:description",
         content:

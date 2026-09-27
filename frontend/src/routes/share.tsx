@@ -24,13 +24,13 @@ import { createSession, uploadVideo, type Session } from "@/lib/api";
 export const Route = createFileRoute("/share")({
   head: () => ({
     meta: [
-      { title: "Submit Video & Create Test | ReactionLens" },
+      { title: "Submit Video & Create Test | Read The Room" },
       {
         name: "description",
         content:
           "Product owners upload or submit testable video content and generate unique participant links for reaction tracking.",
       },
-      { property: "og:title", content: "Submit Video & Create Test | ReactionLens" },
+      { property: "og:title", content: "Submit Video & Create Test | Read The Room" },
       {
         property: "og:description",
         content:
@@ -532,7 +532,7 @@ function ShareTest() {
                   <ExternalLink className="h-3.5 w-3.5 text-primary" /> Open Link as Participant
                 </Link>
                 <Link
-                  to="/"
+                  to="/dashboard"
                   search={{ session: createdSession.id }}
                   className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent/80"
                 >
@@ -580,7 +580,7 @@ function ShareTest() {
             </p>
             <div className="mt-4">
               <Link
-                to="/"
+                to="/dashboard"
                 className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
               >
                 Go to Dashboard <ArrowRight className="h-3.5 w-3.5" />
