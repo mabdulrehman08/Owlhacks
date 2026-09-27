@@ -18,7 +18,7 @@ import {
 function SectionHeading({ eyebrow, title, body }: { eyebrow: string; title: string; body?: string }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <span className="text-xs font-semibold uppercase tracking-wider text-primary">{eyebrow}</span>
+      <span className="eyebrow">{eyebrow}</span>
       <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
       {body && <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">{body}</p>}
     </div>
@@ -166,7 +166,7 @@ export function PrivacySection() {
 export function FinalCta() {
   return (
     <section className="px-6 pb-20">
-      <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[oklch(0.45_0.2_285)] px-8 py-14 text-center text-primary-foreground shadow-pop">
+      <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#521A32] px-8 py-14 text-center text-primary-foreground shadow-pop">
         <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
           Stop guessing how your video lands.
         </h2>
