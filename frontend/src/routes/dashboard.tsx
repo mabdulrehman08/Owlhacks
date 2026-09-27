@@ -22,13 +22,24 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { ReactionTimeline } from "@/components/ReactionTimeline";
 import { SessionAgentChat } from "@/components/SessionAgentChat";
+import { EmotionLegend, EmotionStrip } from "@/components/EmotionStrip";
 import {
   getInsights,
+  getReactions,
   getSession,
   listSessions,
   type Insights,
+  type Reaction,
   type Session,
 } from "@/lib/api";
+import {
+  emotionMeta,
+  moodLabel,
+  moodScore,
+  moodTone,
+  timelineDuration,
+  TONE_STYLES,
+} from "@/lib/emotions";
 import { formatTime } from "@/lib/reaction-data";
 import poster from "@/assets/session-frame.jpg";
 
@@ -63,6 +74,7 @@ export function Dashboard() {
 
   // Insights & Data state
   const [insights, setInsights] = useState<Insights | null>(null);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -111,6 +123,9 @@ export function Dashboard() {
         setError(err.message);
       })
       .finally(() => setLoading(false));
+    getReactions(sessionId)
+      .then(setReactions)
+      .catch(() => setReactions([]));
   }, [sessionId]);
 
   // Reset playback when switching sessions
@@ -140,6 +155,13 @@ export function Dashboard() {
   const negativeShift = insights?.most_negative_shift;
   const topMoments = insights?.top_5 || [];
   const reactionCount = insights?.summary?.reaction_count ?? 0;
+  const summary = insights?.summary;
+  const sentiment = summary?.overall_sentiment ?? 0;
+  const mood = moodTone(sentiment);
+  const dominant = summary?.dominant_emotion ? emotionMeta(summary.dominant_emotion) : null;
+  // Match ReactionTimeline: never shorter than the reactions, so the strip lines up with the chart.
+  const stripDuration = Math.max(videoDuration, timelineDuration(reactions));
+  const breakdown = Object.entries(summary?.counts_by_type ?? {}).sort((a, b) => b[1] - a[1]);
 
   const testLink =
     typeof window !== "undefined"
@@ -192,7 +214,11 @@ export function Dashboard() {
               }}
               className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-positive" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-positive" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
               {copied ? "Link Copied" : "Copy Participant Link"}
             </button>
 
@@ -226,7 +252,8 @@ export function Dashboard() {
               <h2 className="text-base font-semibold">Awaiting Participant Feedback</h2>
               <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
                 This test session has been created, but no user reactions have been submitted yet.
-                Send the test link to participants so their facial reactions stream into this dashboard.
+                Send the test link to participants so their facial reactions stream into this
+                dashboard.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
@@ -254,6 +281,79 @@ export function Dashboard() {
               </Link>
             </div>
           </div>
+        )}
+
+        {/* Session Mood Overview */}
+        {!loading && reactionCount > 0 && (
+          <section className="card-surface space-y-5 rounded-2xl p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`grid h-12 w-12 place-items-center rounded-2xl text-2xl ${
+                    dominant ? TONE_STYLES[dominant.tone].soft : "bg-muted"
+                  }`}
+                >
+                  {dominant?.emoji ?? "🎬"}
+                </span>
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    {reactionCount} reactions · mostly{" "}
+                    <span className={dominant ? TONE_STYLES[dominant.tone].text : ""}>
+                      {dominant?.label.toLowerCase() ?? "mixed"}
+                    </span>
+                  </p>
+                  <p className="font-display text-lg font-semibold">
+                    How did they feel, second by second?
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${TONE_STYLES[mood].soft} ${TONE_STYLES[mood].text}`}
+              >
+                Mood {moodScore(sentiment)}/100 · {moodLabel(sentiment)}
+              </span>
+            </div>
+
+            <div>
+              {reactions.length ? (
+                <EmotionStrip
+                  reactions={reactions}
+                  duration={stripDuration}
+                  currentTime={time}
+                  onSeek={seek}
+                  className="h-6"
+                />
+              ) : (
+                <div className="h-6 animate-pulse rounded-full bg-muted" />
+              )}
+              <div className="mt-1.5 flex items-center justify-between">
+                <span className="text-[10px] font-medium text-muted-foreground">0:00</span>
+                <EmotionLegend />
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {formatTime(stripDuration)}
+                </span>
+              </div>
+            </div>
+
+            {breakdown.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {breakdown.map(([type, count]) => {
+                  const meta = emotionMeta(type);
+                  const style = TONE_STYLES[meta.tone];
+                  return (
+                    <span
+                      key={type}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${style.soft} ${style.text}`}
+                    >
+                      <span className="text-sm">{meta.emoji}</span>
+                      {meta.label}
+                      <span className="tabular-nums opacity-70">×{count}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         )}
 
         {/* Main Dashboard Grid */}
@@ -371,11 +471,11 @@ export function Dashboard() {
                   {mostPositive ? (
                     <button
                       onClick={() => seek(mostPositive.timestamp)}
-                      className="card-surface p-4 text-left transition-shadow hover:shadow-pop rounded-2xl"
+                      className="rounded-2xl border border-border bg-positive-soft p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-pop"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="grid h-9 w-9 place-items-center rounded-full bg-positive-soft text-lg">
-                          😄
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-card text-lg shadow-sm">
+                          {emotionMeta(mostPositive.type).emoji}
                         </span>
                         <span className="text-xs font-medium text-muted-foreground">
                           Most Positive Moment
@@ -385,7 +485,8 @@ export function Dashboard() {
                         {formatTime(mostPositive.timestamp)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {mostPositive.type} (intensity: {mostPositive.intensity.toFixed(2)})
+                        {emotionMeta(mostPositive.type).label} · intensity{" "}
+                        {mostPositive.intensity.toFixed(2)}
                       </p>
                     </button>
                   ) : (
@@ -398,11 +499,11 @@ export function Dashboard() {
                   {biggest ? (
                     <button
                       onClick={() => seek(biggest.timestamp)}
-                      className="card-surface p-4 text-left transition-shadow hover:shadow-pop rounded-2xl"
+                      className="rounded-2xl border border-border bg-notable-soft p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-pop"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="grid h-9 w-9 place-items-center rounded-full bg-notable-soft text-lg">
-                          😮
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-card text-lg shadow-sm">
+                          {emotionMeta(biggest.type).emoji}
                         </span>
                         <span className="text-xs font-medium text-muted-foreground">
                           Biggest Reaction
@@ -412,7 +513,7 @@ export function Dashboard() {
                         {formatTime(biggest.timestamp)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {biggest.type} (intensity: {biggest.intensity.toFixed(2)})
+                        {emotionMeta(biggest.type).label} · intensity {biggest.intensity.toFixed(2)}
                       </p>
                     </button>
                   ) : (
@@ -425,11 +526,11 @@ export function Dashboard() {
                   {negativeShift ? (
                     <button
                       onClick={() => seek(negativeShift.timestamp)}
-                      className="card-surface p-4 text-left transition-shadow hover:shadow-pop rounded-2xl"
+                      className="rounded-2xl border border-border bg-negative-soft p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-pop"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="grid h-9 w-9 place-items-center rounded-full bg-negative-soft text-lg">
-                          😕
+                        <span className="grid h-9 w-9 place-items-center rounded-full bg-card text-lg shadow-sm">
+                          {emotionMeta(negativeShift.type).emoji}
                         </span>
                         <span className="text-xs font-medium text-muted-foreground">
                           Negative Shift
@@ -439,7 +540,10 @@ export function Dashboard() {
                         {formatTime(negativeShift.timestamp)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        From {negativeShift.from_type} (delta: {negativeShift.delta.toFixed(2)})
+                        {emotionMeta(negativeShift.from_type).emoji} →{" "}
+                        {emotionMeta(negativeShift.type).emoji}{" "}
+                        {emotionMeta(negativeShift.from_type).label} to{" "}
+                        {emotionMeta(negativeShift.type).label.toLowerCase()}
                       </p>
                     </button>
                   ) : (
@@ -470,7 +574,11 @@ export function Dashboard() {
                               <span className="font-semibold tabular-nums">
                                 {formatTime(m.timestamp)}
                               </span>
-                              <span className="truncate text-muted-foreground">{m.type}</span>
+                              <span
+                                className={`truncate font-medium ${TONE_STYLES[emotionMeta(m.type).tone].text}`}
+                              >
+                                {emotionMeta(m.type).emoji} {emotionMeta(m.type).label}
+                              </span>
                             </button>
                           </li>
                         ))}
@@ -508,26 +616,33 @@ export function Dashboard() {
                     Recommendations will appear as viewers complete this test.
                   </p>
                 ) : (
-                  topMoments.slice(0, 3).map((m) => (
-                    <button
-                      key={m.timestamp}
-                      onClick={() => seek(m.timestamp)}
-                      className="flex w-full items-start gap-3 rounded-2xl bg-info-soft p-3.5 text-left transition-transform hover:-translate-y-0.5"
-                    >
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-card text-primary">
-                        <Sparkles className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0">
-                        <span className="block text-sm font-semibold">
-                          Review at {formatTime(m.timestamp)}
+                  topMoments.slice(0, 3).map((m) => {
+                    const meta = emotionMeta(m.type);
+                    return (
+                      <button
+                        key={m.timestamp}
+                        onClick={() => seek(m.timestamp)}
+                        className={`flex w-full items-start gap-3 rounded-2xl p-3.5 text-left transition-transform hover:-translate-y-0.5 ${TONE_STYLES[meta.tone].soft}`}
+                      >
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-card text-lg shadow-sm">
+                          {meta.emoji}
                         </span>
-                        <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-                          Notable {m.type} expression shift (intensity: {m.intensity.toFixed(2)})
-                        </span>
-                      </div>
-                      <Arrow className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
-                    </button>
-                  ))
+                        <div className="min-w-0">
+                          <span className="block text-sm font-semibold">
+                            Review at {formatTime(m.timestamp)}
+                          </span>
+                          <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                            Notable{" "}
+                            <span className={`font-semibold ${TONE_STYLES[meta.tone].text}`}>
+                              {meta.label.toLowerCase()}
+                            </span>{" "}
+                            moment · intensity {m.intensity.toFixed(2)}
+                          </span>
+                        </div>
+                        <Arrow className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </section>
