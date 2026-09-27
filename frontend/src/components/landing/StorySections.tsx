@@ -181,10 +181,11 @@ export function FinalCta() {
             <Upload className="h-4 w-4" /> Upload a video <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
-            to="/live"
+            to="/test/$sessionId"
+            params={{ sessionId: "demo" }}
             className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
-            <Activity className="h-4 w-4" /> Try the face tracker on yourself
+            <Activity className="h-4 w-4" /> Try it on yourself
           </Link>
         </div>
       </div>
