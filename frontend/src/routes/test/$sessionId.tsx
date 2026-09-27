@@ -440,7 +440,7 @@ export function ParticipantTestPage() {
       {/* Clean Participant Top Header (NO Product Owner sidebar) */}
       <header className="border-b border-border bg-card/90 px-6 py-4 backdrop-blur sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-85">
+          <div className="flex items-center gap-3">
             <img src={logo} alt="Read The Room" width={30} height={30} className="h-7 w-7" />
             <div>
               <span className="flex items-baseline gap-2 text-sm"><Wordmark /><span className="eyebrow text-[10px]">Participant test</span></span>
@@ -451,7 +451,7 @@ export function ParticipantTestPage() {
                 </span>
               </p>
             </div>
-          </Link>
+          </div>
 
           <div className="flex items-center gap-2 text-xs">
             <span
@@ -884,10 +884,11 @@ export function ParticipantTestPage() {
             {/* Direct Handoff for Demo / Local Presentation */}
             <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
-                to="/"
+                to="/dashboard"
+                search={{ session: sessionId }}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-pop hover:bg-primary/90"
               >
-                Return to Home <ArrowRight className="h-4 w-4" />
+                View Stats in Product Owner Dashboard <ArrowRight className="h-4 w-4" />
               </Link>
               <button
                 onClick={() => {
