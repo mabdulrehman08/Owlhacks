@@ -7,12 +7,13 @@ from models.database import get_conn
 
 def add_many(session_id: str, reactions: Iterable[dict]) -> int:
     rows = [
-        (session_id, r["timestamp"], r["type"], r["intensity"], r.get("confidence", 1.0))
+        (session_id, r["timestamp"], r["type"], r["intensity"], r.get("confidence", 1.0), r.get("breathing_rate"))
         for r in reactions
     ]
     with get_conn() as conn:
         conn.executemany(
-            "INSERT INTO reactions (session_id, timestamp, type, intensity, confidence) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO reactions (session_id, timestamp, type, intensity, confidence, breathing_rate) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
             rows,
         )
     return len(rows)
@@ -20,7 +21,9 @@ def add_many(session_id: str, reactions: Iterable[dict]) -> int:
 
 def list_for_session(session_id: str, start: Optional[float] = None, end: Optional[float] = None) -> list[dict]:
     """Reactions in time order, optionally limited to start..end seconds (inclusive)."""
-    query = "SELECT id, timestamp, type, intensity, confidence FROM reactions WHERE session_id = ?"
+    query = (
+        "SELECT id, timestamp, type, intensity, confidence, breathing_rate FROM reactions WHERE session_id = ?"
+    )
     params: list = [session_id]
     if start is not None:
         query += " AND timestamp >= ?"

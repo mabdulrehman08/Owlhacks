@@ -29,12 +29,17 @@ def init_db() -> None:
                 timestamp REAL NOT NULL,
                 type TEXT NOT NULL,
                 intensity REAL NOT NULL,
-                confidence REAL NOT NULL
+                confidence REAL NOT NULL,
+                breathing_rate REAL
             );
             CREATE INDEX IF NOT EXISTS idx_reactions_session_ts
                 ON reactions(session_id, timestamp);
             """
         )
+        # Added after launch: databases created earlier don't have this column yet.
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(reactions)")}
+        if "breathing_rate" not in columns:
+            conn.execute("ALTER TABLE reactions ADD COLUMN breathing_rate REAL")
     seed_demo()
 
 

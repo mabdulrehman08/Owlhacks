@@ -11,6 +11,9 @@ class ReactionIn(BaseModel):
     type: str = Field(..., description="Emotion label, e.g. joy, surprise, confusion")
     intensity: float = Field(..., ge=0, le=1)
     confidence: float = Field(1.0, ge=0, le=1)
+    breathing_rate: Optional[float] = Field(
+        None, ge=0, le=80, description="Breaths per minute measured by SmartSpectra, if available"
+    )
 
     @field_validator("type")
     @classmethod
@@ -61,6 +64,9 @@ class Summary(BaseModel):
     average_intensity: float
     overall_sentiment: float = Field(..., description="-1 (negative) .. 1 (positive)")
     counts_by_type: dict[str, int]
+    average_breathing_rate: Optional[float] = Field(
+        None, description="Mean breaths per minute across reactions that have one"
+    )
 
 
 class Insights(BaseModel):

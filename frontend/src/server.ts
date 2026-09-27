@@ -1,6 +1,7 @@
 import "./lib/error-capture";
 
 import { isApiRequest, proxyApiRequest } from "./lib/api-proxy";
+import { handleVitalsRequest, isVitalsRequest } from "./lib/vitals.server";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -49,6 +50,8 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
+      // Breathing vitals run in this Node process (native SDK), not the Python backend.
+      if (isVitalsRequest(url)) return await handleVitalsRequest(request, url);
       if (isApiRequest(url)) return await proxyApiRequest(request, url);
 
       const handler = await getServerEntry();

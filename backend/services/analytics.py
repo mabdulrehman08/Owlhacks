@@ -146,6 +146,7 @@ def summary(reactions: list[dict]) -> dict:
             "average_intensity": 0.0,
             "overall_sentiment": 0.0,
             "counts_by_type": {},
+            "average_breathing_rate": None,
         }
     rs = _sorted(reactions)
     counts = Counter(r["type"] for r in rs)
@@ -160,7 +161,13 @@ def summary(reactions: list[dict]) -> dict:
         # Weighted mean valence, so strong confident reactions count more.
         "overall_sentiment": round(sum(valence_score(r) for r in rs) / total_weight, 4),
         "counts_by_type": dict(counts.most_common()),
+        "average_breathing_rate": _average_breathing(rs),
     }
+
+
+def _average_breathing(reactions: list[dict]) -> Optional[float]:
+    rates = [r["breathing_rate"] for r in reactions if r.get("breathing_rate")]
+    return round(sum(rates) / len(rates), 1) if rates else None
 
 
 def insights(reactions: list[dict]) -> dict:

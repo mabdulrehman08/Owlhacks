@@ -95,11 +95,11 @@ export function ReactionTimeline({
 
   // Calculate effective timeline duration
   const maxReactionTime = reactions.length > 0 ? Math.max(...reactions.map((x) => x.timestamp)) : 0;
-  const effectiveDuration = Math.max(
-    videoDuration && videoDuration > 0 ? videoDuration : 0,
-    maxReactionTime > 0 ? Math.ceil(maxReactionTime + 1) : 0,
-    sessionId === "demo" ? 270 : 15
-  );
+  // Follow the real video length when known; otherwise size to the reactions.
+  const effectiveDuration =
+    videoDuration && videoDuration > 0
+      ? Math.max(videoDuration, maxReactionTime)
+      : Math.max(maxReactionTime > 0 ? Math.ceil(maxReactionTime + 1) : 0, sessionId === "demo" ? 270 : 15);
 
   const markers = getMarkers(reactions);
   const series = buildSeries(reactions, effectiveDuration);

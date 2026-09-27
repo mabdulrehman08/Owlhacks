@@ -32,6 +32,8 @@ import { getSession, submitReactions, type Reaction, type Session } from "@/lib/
 import { formatTime } from "@/lib/reaction-data";
 import logo from "@/assets/logo.png";
 import { Wordmark } from "@/components/Wordmark";
+import { BreathingHud } from "@/components/BreathingHud";
+import { useBreathingVitals } from "@/lib/use-breathing-vitals";
 import {
   EXPRESSIONS,
   EXPRESSION_META,
@@ -94,6 +96,12 @@ export function ParticipantTestPage() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [faceDetected, setFaceDetected] = useState(false);
+
+  // Breathing (SmartSpectra) runs while the camera is on; it needs ~30 s to warm up,
+  // so starting at the camera check means readings are ready once the video plays.
+  const vitals = useBreathingVitals(camVideoRef, isCameraActive);
+  const latestRateRef = useRef(vitals.latestRate);
+  latestRateRef.current = vitals.latestRate;
 
   // Live Expressions
   const [chartData, setChartData] = useState<ExpressionPoint[]>([]);
@@ -312,6 +320,7 @@ export function ParticipantTestPage() {
           type: top.type,
           intensity: top.type === "neutral" ? 0.15 : Number(Math.min(1, top.score / 100).toFixed(2)),
           confidence: 0.9,
+          breathing_rate: hasLiveFace ? (latestRateRef.current() ?? null) : null,
         };
 
         recordedReactionsRef.current.push(newReaction);
@@ -381,6 +390,7 @@ export function ParticipantTestPage() {
             type: r.type,
             intensity: r.intensity,
             confidence: r.confidence,
+            breathing_rate: r.breathing_rate ?? null,
           }))
         );
       }
@@ -728,6 +738,7 @@ export function ParticipantTestPage() {
                       muted
                       className="w-full h-full object-cover -scale-x-100"
                     />
+                    <BreathingHud vitals={vitals} />
 
                     {faceDetected && (
                       <div className="absolute bottom-2 left-2 rounded-lg bg-card/90 px-2 py-1 text-[11px] font-semibold backdrop-blur shadow border border-border">
