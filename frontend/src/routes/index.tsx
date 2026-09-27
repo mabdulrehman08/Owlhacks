@@ -14,6 +14,8 @@ import { useState } from "react";
 import logo from "@/assets/logo.png";
 import poster from "@/assets/session-frame.jpg";
 import faceMesh from "@/assets/face-mesh.svg";
+import { LiveDemo } from "@/components/landing/LiveDemo";
+import { FinalCta, PrivacySection, ProblemSection, UseCasesSection } from "@/components/landing/StorySections";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -129,8 +131,14 @@ function Landing() {
             <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               How it works
             </a>
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-              Features
+            <a href="#live-demo" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Live demo
+            </a>
+            <a href="#use-cases" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Use cases
+            </a>
+            <a href="#privacy" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Privacy
             </a>
             <Link to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Demo dashboard
@@ -160,8 +168,14 @@ function Landing() {
             <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
               How it works
             </a>
-            <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
-              Features
+            <a href="#live-demo" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
+              Live demo
+            </a>
+            <a href="#use-cases" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
+              Use cases
+            </a>
+            <a href="#privacy" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
+              Privacy
             </a>
             <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
               Demo dashboard
@@ -282,6 +296,8 @@ function Landing() {
         </div>
       </section>
 
+      <ProblemSection />
+
       {/* How it works */}
       <section id="how-it-works" className="border-t border-border bg-muted/30 py-20">
         <div className="mx-auto max-w-5xl px-6">
@@ -311,8 +327,10 @@ function Landing() {
         </div>
       </section>
 
+      <LiveDemo />
+
       {/* Features */}
-      <section id="features" className="py-20">
+      <section id="features" className="border-t border-border py-20">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mx-auto max-w-xl text-center">
             <span className="text-xs font-semibold uppercase tracking-wider text-primary">
@@ -338,6 +356,12 @@ function Landing() {
           </div>
         </div>
       </section>
+
+      <UseCasesSection />
+
+      <PrivacySection />
+
+      <FinalCta />
 
       {/* Footer */}
       <footer className="border-t border-border py-8">
