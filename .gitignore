@@ -3,3 +3,5 @@
 # local data / caches
 *.db
 __pycache__/
+backend/data/videos/*
+!backend/data/videos/product_demo.mp4

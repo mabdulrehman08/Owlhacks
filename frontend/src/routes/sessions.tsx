@@ -249,7 +249,8 @@ export function SessionsPage() {
 
                             {/* Open Test View as Participant */}
                             <Link
-                              to={`/test/${s.id}`}
+                              to="/test/$sessionId"
+                              params={{ sessionId: s.id }}
                               target="_blank"
                               title="Open Link as Participant"
                               className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"

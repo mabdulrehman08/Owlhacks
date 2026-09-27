@@ -1,7 +1,7 @@
 // In Docker this is the backend service on the compose network; running locally
 // it is the uvicorn dev server. Either way only the server resolves it, so the
 // browser talks to this origin alone — no CORS, no build-time API URL.
-const BACKEND_URL = process.env["API_URL"] ?? "http://localhost:8000";
+const BACKEND_URL = process.env["API_URL"] ?? "http://127.0.0.1:8000";
 
 const PREFIX = "/api";
 

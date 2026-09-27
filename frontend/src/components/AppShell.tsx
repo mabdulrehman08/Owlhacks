@@ -70,7 +70,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <div className="flex items-center gap-3">
               <Link
-                to="/test/demo"
+                to="/test/$sessionId"
+                params={{ sessionId: "demo" }}
                 target="_blank"
                 className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted shadow-sm transition-colors"
               >
