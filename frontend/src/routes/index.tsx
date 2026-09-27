@@ -33,8 +33,8 @@ import { formatTime } from "@/lib/reaction-data";
 import poster from "@/assets/session-frame.jpg";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { session?: string } => ({
-    session: typeof search.session === "string" ? search.session : undefined,
+  validateSearch: (search: Record<string, unknown>): { session?: string | undefined } => ({
+    session: typeof search["session"] === "string" ? (search["session"] as string) : undefined,
   }),
   head: () => ({
     meta: [
@@ -82,7 +82,8 @@ export function Dashboard() {
         if (items.length > 0 && !search.session) {
           // Keep current sessionId if in list, otherwise select first
           if (!items.some((s) => s.id === sessionId) && sessionId !== "demo") {
-            setSessionId(items[0].id);
+            const first = items[0];
+            if (first) setSessionId(first.id);
           }
         }
       })
@@ -112,14 +113,26 @@ export function Dashboard() {
       .finally(() => setLoading(false));
   }, [sessionId]);
 
+  // Reset playback when switching sessions
+  useEffect(() => {
+    setTime(0);
+    setPlaying(false);
+    setVideoDuration(0);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.pause();
+    }
+  }, [sessionId]);
+
   const seek = (t: number) => {
     const v = videoRef.current;
-    const clamped = Math.max(0, Math.min(videoDuration || 270, t));
+    const dur = videoDuration || (v && v.duration) || 270;
+    const clamped = Math.max(0, Math.min(dur, t));
     setTime(clamped);
-    if (v && v.duration) {
-      v.currentTime = (clamped / (videoDuration || v.duration)) * v.duration;
+    if (v) {
+      v.currentTime = clamped;
+      void v.play();
     }
-    void v?.play();
   };
 
   const mostPositive = insights?.most_positive;
@@ -185,7 +198,8 @@ export function Dashboard() {
 
             {/* Open Participant View Directly */}
             <Link
-              to={`/test/${sessionId}`}
+              to="/test/$sessionId"
+              params={{ sessionId }}
               target="_blank"
               className="inline-flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
             >
@@ -232,7 +246,8 @@ export function Dashboard() {
                 {copied ? "Copied!" : "Copy Link"}
               </button>
               <Link
-                to={`/test/${sessionId}`}
+                to="/test/$sessionId"
+                params={{ sessionId }}
                 className="rounded-xl border border-input bg-card px-4 py-2 text-xs font-semibold hover:bg-muted"
               >
                 Take Test Now
@@ -329,7 +344,12 @@ export function Dashboard() {
                   Error: {error}
                 </div>
               ) : (
-                <ReactionTimeline sessionId={sessionId} currentTime={time} onSeek={seek} />
+                <ReactionTimeline
+                  sessionId={sessionId}
+                  currentTime={time}
+                  onSeek={seek}
+                  videoDuration={videoDuration}
+                />
               )}
 
               <p className="mt-4 flex gap-2 rounded-xl bg-info-soft p-3 text-xs leading-relaxed text-muted-foreground">

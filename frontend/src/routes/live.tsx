@@ -219,7 +219,7 @@ export function LiveTrackerPage() {
 
         setCurrentScores({ Happy, Surprised, Angry, Sad });
 
-        const timeStr = new Date().toLocaleTimeString().split(" ")[0];
+        const timeStr = new Date().toLocaleTimeString().split(" ")[0] || "";
         const newDataPoint: ExpressionPoint = {
           time: timeStr,
           Happy,
@@ -295,7 +295,8 @@ export function LiveTrackerPage() {
 
           <div className="flex items-center gap-2">
             <Link
-              to="/test/demo"
+              to="/test/$sessionId"
+              params={{ sessionId: "demo" }}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
               <Video className="h-4 w-4" /> Open Participant Test View
