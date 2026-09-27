@@ -12,8 +12,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/logo.png";
-import poster from "@/assets/session-frame.jpg";
-import faceMesh from "@/assets/face-mesh.svg";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { FinalCta, PrivacySection, ProblemSection, UseCasesSection } from "@/components/landing/StorySections";
 import { Wordmark } from "@/components/Wordmark";
@@ -54,7 +52,7 @@ const steps = [
   {
     icon: BarChart3,
     title: "Get the analysis",
-    body: "Reactions land in your dashboard as a timeline, top emotional moments, and an AI agent you can ask about what happened.",
+    body: "Reactions turn into an interactive timeline, top emotional moments, and an AI agent you can ask about what happened.",
   },
 ];
 
@@ -80,40 +78,6 @@ const features = [
     body: "No installs, no accounts for testers. Send a link, collect reactions from as many viewers as you want.",
   },
 ];
-
-const timelineBars = [28, 42, 55, 38, 72, 60, 85, 46, 64, 90, 50, 34];
-
-// face-mesh.svg and the coordinates below come from running MediaPipe FaceMesh
-// on session-frame.jpg (1280x720). Regenerate both if the photo changes.
-function FaceLandmarkOverlay() {
-  const box = { x1: 530, y1: 138, x2: 820, y2: 458 };
-  const arm = 28;
-  const scan = "#E8BC5E";
-
-  return (
-    <>
-      <img
-        src={faceMesh}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full"
-      />
-      <svg
-        viewBox="0 0 1280 720"
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        aria-hidden="true"
-      >
-        <circle cx={626.6} cy={264.8} r={4} fill="white" className="animate-pulse" />
-        <circle cx={739.5} cy={243} r={4} fill="white" className="animate-pulse" />
-        <g stroke={scan} strokeWidth={5} strokeLinecap="round" fill="none">
-          <path d={`M ${box.x1} ${box.y1 + arm} L ${box.x1} ${box.y1} L ${box.x1 + arm} ${box.y1}`} />
-          <path d={`M ${box.x2 - arm} ${box.y1} L ${box.x2} ${box.y1} L ${box.x2} ${box.y1 + arm}`} />
-          <path d={`M ${box.x1} ${box.y2 - arm} L ${box.x1} ${box.y2} L ${box.x1 + arm} ${box.y2}`} />
-          <path d={`M ${box.x2 - arm} ${box.y2} L ${box.x2} ${box.y2} L ${box.x2} ${box.y2 - arm}`} />
-        </g>
-      </svg>
-    </>
-  );
-}
 
 function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -141,8 +105,8 @@ function Landing() {
             <a href="#privacy" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Privacy
             </a>
-            <Link to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-              Demo dashboard
+            <Link to="/live" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Face tracker
             </Link>
           </nav>
 
@@ -178,8 +142,8 @@ function Landing() {
             <a href="#privacy" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
               Privacy
             </a>
-            <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
-              Demo dashboard
+            <Link to="/live" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium hover:bg-muted">
+              Face tracker
             </Link>
             <Link
               to="/share"
@@ -193,7 +157,7 @@ function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-5xl px-6 pt-16 pb-8 text-center sm:pt-24">
+      <section className="mx-auto max-w-5xl px-6 pt-16 pb-20 text-center sm:pt-24 sm:pb-28">
         <span className="mx-auto mb-6 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/5 px-3.5 py-1.5 text-xs font-semibold text-primary">
           <Sparkles className="h-3.5 w-3.5" /> Facial reaction analytics for video testing
         </span>
@@ -220,80 +184,11 @@ function Landing() {
             <Upload className="h-4 w-4" /> Get started — upload a video
           </Link>
           <Link
-            to="/dashboard"
-            search={{ session: "demo" }}
+            to="/live"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-input bg-card px-6 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
           >
-            View demo dashboard
+            <Activity className="h-4 w-4 text-primary" /> Try live face tracker
           </Link>
-        </div>
-
-      </section>
-
-      {/* Hero mockup */}
-      <section className="mx-auto max-w-4xl px-6 pb-24">
-        <div className="relative">
-          <div className="card-surface overflow-hidden rounded-3xl shadow-pop">
-            <div className="flex items-center gap-1.5 border-b border-border bg-muted/40 px-4 py-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-negative/50" />
-              <span className="h-2.5 w-2.5 rounded-full bg-notable/50" />
-              <span className="h-2.5 w-2.5 rounded-full bg-positive/50" />
-              <span className="ml-3 truncate font-mono text-[11px] text-muted-foreground">
-                readtheroom.app/dashboard
-              </span>
-            </div>
-
-            <div className="grid gap-4 p-4 sm:grid-cols-[1.5fr_1fr] sm:p-5">
-              <div className="space-y-3">
-                <div className="relative aspect-video overflow-hidden rounded-2xl bg-black">
-                  <img src={poster} alt="" className="h-full w-full object-cover opacity-90" />
-                  <FaceLandmarkOverlay />
-                  <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">
-                    <span className="h-1.5 w-1.5 rounded-full bg-positive" /> 128 reactions logged
-                  </span>
-                  <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#E8BC5E] animate-pulse" />
-                    Face detected · 98%
-                  </span>
-                </div>
-                <div className="flex h-16 items-end gap-1 rounded-xl bg-muted/60 p-3">
-                  {timelineBars.map((h, i) => (
-                    <span
-                      key={i}
-                      style={{ height: `${h}%` }}
-                      className="flex-1 rounded-t-sm bg-primary/50"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2.5">
-                <div className="rounded-xl bg-positive-soft p-3">
-                  <p className="text-[10px] font-medium text-muted-foreground">Most positive moment</p>
-                  <p className="mt-1 text-sm font-semibold">😄 1:32 · joy</p>
-                </div>
-                <div className="rounded-xl bg-notable-soft p-3">
-                  <p className="text-[10px] font-medium text-muted-foreground">Biggest reaction</p>
-                  <p className="mt-1 text-sm font-semibold">😮 2:47 · surprise</p>
-                </div>
-                <div className="rounded-xl border border-border bg-card p-3">
-                  <p className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                    <Sparkles className="h-3 w-3 text-primary" /> Ask the agent
-                  </p>
-                  <p className="mt-1 text-xs italic text-muted-foreground">
-                    "Where did viewers get confused?"
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute -left-4 top-8 hidden rounded-2xl border border-border bg-card px-4 py-2.5 shadow-pop sm:block">
-            <p className="text-xs font-semibold">😄 92% positive reactions</p>
-          </div>
-          <div className="absolute -right-4 bottom-10 hidden rounded-2xl border border-border bg-card px-4 py-2.5 shadow-pop sm:block">
-            <p className="text-xs font-semibold">🔗 1 link · unlimited testers</p>
-          </div>
         </div>
       </section>
 
@@ -367,10 +262,10 @@ function Landing() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-center sm:flex-row sm:text-left">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-85">
             <img src={logo} alt="Read The Room" width={22} height={22} className="h-5.5 w-5.5" />
             <Wordmark className="text-sm" />
-          </div>
+          </Link>
           <p className="text-xs text-muted-foreground">© 2026 Read The Room. Built for OwlHacks.</p>
         </div>
       </footer>

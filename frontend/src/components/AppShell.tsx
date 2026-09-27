@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
   Activity,
-  BarChart3,
   CalendarClock,
   ExternalLink,
   Info,
@@ -13,7 +12,6 @@ import logo from "@/assets/logo.png";
 import { Wordmark } from "@/components/Wordmark";
 
 const nav = [
-  { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { to: "/sessions", label: "Sessions", icon: CalendarClock },
   { to: "/share", label: "Submit Video & Test", icon: PlusCircle },
   { to: "/live", label: "Live Face Tracker", icon: Activity },
@@ -25,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="mx-auto flex max-w-[1500px]">
         {/* Sidebar */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 lg:flex">
-          <Link to="/dashboard" className="mb-8 flex items-center gap-2.5 px-2">
+          <Link to="/" className="mb-8 flex items-center gap-2.5 px-2 transition-opacity hover:opacity-85">
             <img src={logo} alt="Read The Room" width={32} height={32} className="h-8 w-8" />
             <div>
               <Wordmark className="text-lg" />
@@ -38,7 +36,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={to}
                 to={to}
-                activeOptions={{ exact: to === "/dashboard" }}
                 className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/60 data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground"
               >
                 <Icon className="h-4.5 w-4.5" />
@@ -89,7 +86,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={to}
                 to={to}
-                activeOptions={{ exact: to === "/dashboard" }}
                 className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-accent-foreground"
               >
                 {label}
