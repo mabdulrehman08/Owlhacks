@@ -37,11 +37,11 @@ import {
   moodLabel,
   moodScore,
   moodTone,
-  timelineDuration,
+  reactionReach,
+  watchedSeconds,
   TONE_STYLES,
 } from "@/lib/emotions";
 import { formatTime } from "@/lib/reaction-data";
-import poster from "@/assets/session-frame.jpg";
 
 // Each session is its own dashboard: /sessions/<id>. The trailing underscore keeps
 // it a sibling of /sessions (which has no <Outlet />) rather than a nested child.
@@ -68,6 +68,7 @@ export function SessionDashboard() {
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [videoMissing, setVideoMissing] = useState(false);
 
   // Sessions state
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -118,6 +119,7 @@ export function SessionDashboard() {
     setTime(0);
     setPlaying(false);
     setVideoDuration(0);
+    setVideoMissing(false);
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.pause();
@@ -145,7 +147,14 @@ export function SessionDashboard() {
   const mood = moodTone(sentiment);
   const dominant = summary?.dominant_emotion ? emotionMeta(summary.dominant_emotion) : null;
   // Match ReactionTimeline: never shorter than the reactions, so the strip lines up with the chart.
-  const stripDuration = Math.max(videoDuration, timelineDuration(reactions));
+  // The bar is the video's real length; reactions only color what was watched.
+  const hasVideo = !!currentSession?.video_url && !videoMissing;
+  const durationKnown = !hasVideo || videoDuration > 0;
+  const lastReaction = reactions.length ? Math.max(...reactions.map((r) => r.timestamp)) : 0;
+  const stripDuration = Math.max(videoDuration, lastReaction + 1, 1);
+  const reach = reactionReach(reactions);
+  const watched = watchedSeconds(reactions, stripDuration, reach);
+  const watchedPct = Math.round((watched / stripDuration) * 100);
   const breakdown = Object.entries(summary?.counts_by_type ?? {}).sort((a, b) => b[1] - a[1]);
 
   const testLink =
@@ -298,20 +307,31 @@ export function SessionDashboard() {
                   </p>
                 </div>
               </div>
+              <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold ${TONE_STYLES[mood].soft} ${TONE_STYLES[mood].text}`}
               >
                 Mood {moodScore(sentiment)}/100 · {moodLabel(sentiment)}
               </span>
+              {summary?.average_breathing_rate ? (
+                <span
+                  title="Average breathing rate measured by SmartSpectra"
+                  className="rounded-full bg-info-soft px-3 py-1 text-xs font-semibold text-info"
+                >
+                  🫁 {Math.round(summary.average_breathing_rate)} breaths/min
+                </span>
+              ) : null}
+              </div>
             </div>
 
             <div>
-              {reactions.length ? (
+              {reactions.length && durationKnown ? (
                 <EmotionStrip
                   reactions={reactions}
                   duration={stripDuration}
                   currentTime={time}
                   onSeek={seek}
+                  maxSegment={reach}
                   className="h-6"
                 />
               ) : (
@@ -324,6 +344,18 @@ export function SessionDashboard() {
                   {formatTime(stripDuration)}
                 </span>
               </div>
+              {reactions.length > 0 && durationKnown && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {watchedPct >= 98 ? (
+                    "Watched all the way through"
+                  ) : (
+                    <>
+                      Watched {formatTime(watched)} of {formatTime(stripDuration)} (
+                      {watchedPct}%) — empty parts haven't been watched yet
+                    </>
+                  )}
+                </p>
+              )}
             </div>
 
             {breakdown.length > 0 && (
@@ -358,20 +390,27 @@ export function SessionDashboard() {
                   <Video className="h-4 w-4 text-primary" /> Tested Video Playback
                 </h2>
                 <span className="text-xs text-muted-foreground">
-                  {currentSession?.video_url ? "Session Video" : "Demo Reference Clip"}
+                  {!currentSession?.video_url
+                    ? "No video attached"
+                    : videoMissing
+                      ? "Video file missing"
+                      : "Session video"}
                 </span>
               </div>
 
               <div className="relative overflow-hidden rounded-2xl bg-black aspect-video flex items-center justify-center">
                 <video
                   ref={videoRef}
-                  src={currentSession?.video_url || undefined}
-                  poster={poster}
+                  // #t=0.1 makes the browser paint the video's own first frame as the preview.
+                  src={currentSession?.video_url ? `${currentSession.video_url}#t=0.1` : undefined}
+                  preload="metadata"
                   playsInline
-                  className="aspect-video w-full object-cover"
+                  className="aspect-video w-full object-contain"
                   onLoadedMetadata={(e) => {
                     setVideoDuration(e.currentTarget.duration);
+                    setVideoMissing(false);
                   }}
+                  onError={() => setVideoMissing(true)}
                   onTimeUpdate={(e) => {
                     const v = e.currentTarget;
                     if (v.duration) setTime(v.currentTime);
@@ -379,6 +418,17 @@ export function SessionDashboard() {
                   onPlay={() => setPlaying(true)}
                   onPause={() => setPlaying(false)}
                 />
+
+                {!hasVideo && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted text-center text-muted-foreground">
+                    <Video className="h-8 w-8 opacity-50" />
+                    <p className="text-sm font-medium">
+                      {currentSession?.video_url
+                        ? "This video's file is missing — upload it again to watch it here."
+                        : "No video is attached to this session."}
+                    </p>
+                  </div>
+                )}
 
                 <span className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-lg bg-black/70 px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur">
                   <span className="h-2 w-2 rounded-full bg-positive" />

@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Square,
 } from "lucide-react";
+import { BreathingHud } from "@/components/BreathingHud";
 import { EmotionStrip } from "@/components/EmotionStrip";
 import { submitReactions, type Reaction, type Session } from "@/lib/api";
 import {
@@ -24,6 +25,7 @@ import {
 import { emotionMeta } from "@/lib/emotions";
 import { loadFaceLandmarker, type FaceLandmarkerLike } from "@/lib/face-landmarker";
 import { formatTime } from "@/lib/reaction-data";
+import { useBreathingVitals } from "@/lib/use-breathing-vitals";
 
 type Phase = "idle" | "calibrating" | "ready" | "recording" | "saving" | "done" | "error";
 
@@ -57,6 +59,12 @@ export function ReactionRecorder({ session }: { session: Session }) {
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
+
+  // Breathing (SmartSpectra) runs whenever the camera is on; hidden if not configured.
+  const cameraActive = phase === "calibrating" || phase === "ready" || phase === "recording";
+  const vitals = useBreathingVitals(camRef, cameraActive);
+  const latestRateRef = useRef(vitals.latestRate);
+  latestRateRef.current = vitals.latestRate;
 
   const setPhase = (p: Phase) => {
     phaseRef.current = p;
@@ -110,11 +118,12 @@ export function ReactionRecorder({ session }: { session: Session }) {
     try {
       await submitReactions(
         session.id,
-        taken.map(({ timestamp, type, intensity, confidence }) => ({
+        taken.map(({ timestamp, type, intensity, confidence, breathing_rate }) => ({
           timestamp,
           type,
           intensity,
           confidence,
+          breathing_rate: breathing_rate ?? null,
         })),
       );
       setPhase("done");
@@ -163,6 +172,7 @@ export function ReactionRecorder({ session }: { session: Session }) {
                   intensity:
                     top.type === "neutral" ? 0.15 : Number(Math.min(1, top.score / 100).toFixed(2)),
                   confidence: 0.9,
+                  breathing_rate: latestRateRef.current() ?? null,
                 });
                 setReactions([...reactionsRef.current]);
               }
@@ -212,7 +222,7 @@ export function ReactionRecorder({ session }: { session: Session }) {
 
   const top = dominantExpression(scores);
   const topMeta = top.type === "neutral" ? null : EXPRESSION_META[top.type];
-  const cameraOn = phase === "calibrating" || phase === "ready" || phase === "recording";
+  const cameraOn = cameraActive;
   const stripDuration = Math.max(duration, ...reactions.map((r) => r.timestamp + 1), 1);
   const breakdown = Object.entries(
     reactions.reduce<Record<string, number>>((acc, r) => {
@@ -305,6 +315,7 @@ export function ReactionRecorder({ session }: { session: Session }) {
                 <span className="text-xs">Camera off</span>
               </div>
             )}
+            {cameraOn && <BreathingHud vitals={vitals} />}
             {cameraOn && (
               <span className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2 py-1 text-xs font-semibold text-white">
                 {!faceDetected ? (

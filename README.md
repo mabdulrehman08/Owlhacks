@@ -1,5 +1,7 @@
 # OwlHacks
 
+> 🏆 **We won Fitbits!**
+
 A reaction-analytics dashboard: detect facial reactions in a video, store them, and let
 an AI agent answer questions about what viewers felt and when.
 
@@ -51,6 +53,15 @@ docker compose up --build
 ```
 
 (Compose caches layers, so this is fast unless `requirements.txt` / `package.json` changed.)
+
+## Deploy it
+
+To put it on a server with HTTPS (e.g. a Vultr instance at readtheroom.cooking), see
+[deploy/README.md](deploy/README.md). It runs the same Compose stack behind Caddy:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
 
 ## Run it without Docker
 

@@ -12,12 +12,15 @@ export function EmotionStrip({
   duration,
   currentTime,
   onSeek,
+  maxSegment,
   className = "h-3",
 }: {
   reactions: Reaction[];
   duration: number;
   currentTime?: number;
   onSeek?: (t: number) => void;
+  /** Longest stretch one reaction may color; beyond it the bar stays empty. */
+  maxSegment?: number;
   className?: string;
 }) {
   const sorted = [...reactions].sort((a, b) => a.timestamp - b.timestamp);
@@ -33,7 +36,10 @@ export function EmotionStrip({
     >
       {sorted.map((r, i) => {
         const next = sorted[i + 1];
-        const end = next ? next.timestamp : Math.min(duration, r.timestamp + 8);
+        const reach = maxSegment ?? Infinity;
+        const end = next
+          ? Math.min(next.timestamp, r.timestamp + reach)
+          : Math.min(duration, r.timestamp + (maxSegment ?? 8));
         const meta = emotionMeta(r.type);
         return (
           <span

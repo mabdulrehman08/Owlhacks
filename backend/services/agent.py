@@ -37,7 +37,8 @@ TOOLS = [
     {
         "name": "get_summary",
         "description": "Overall stats for the session: reaction count, duration, dominant emotion, "
-        "average intensity, overall sentiment (-1..1) and counts per emotion type.",
+        "average intensity, overall sentiment (-1..1), counts per emotion type, and average breathing "
+        "rate in breaths per minute when it was measured (null otherwise).",
         "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
@@ -415,6 +416,12 @@ def _chat_fallback(session_id: str, message: str) -> tuple[str, list[str]]:
     return (
         f"{s['reaction_count']} reactions over {fmt_time(s['duration'])}. Overall the response was {mood} "
         f"(sentiment {s['overall_sentiment']:+.2f}); dominant emotion: {s['dominant_emotion']}.\n"
+        + (
+            f"Average breathing rate: {s['average_breathing_rate']:.0f} breaths/min.\n"
+            if s.get("average_breathing_rate")
+            else ""
+        )
+        +
         "Strongest moments:\n" + "\n".join(_line(m) for m in top),
         ["get_summary", "get_top_reactions"],
     )

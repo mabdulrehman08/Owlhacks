@@ -9,6 +9,8 @@ export type Reaction = {
   type: string;
   intensity: number;
   confidence: number;
+  /** Breaths per minute from SmartSpectra, when it was measured. */
+  breathing_rate?: number | null;
 };
 
 export type Session = {
@@ -43,6 +45,7 @@ export type Summary = {
   average_intensity: number;
   overall_sentiment: number;
   counts_by_type: Record<string, number>;
+  average_breathing_rate?: number | null;
 };
 
 export type Insights = {
@@ -102,7 +105,7 @@ export async function deleteSession(sessionId: string): Promise<void> {
 }
 
 export async function uploadVideo(
-  file: File
+  file: File,
 ): Promise<{ filename: string; original_name: string; video_url: string; size: number }> {
   const formData = new FormData();
   formData.append("file", file);
@@ -123,7 +126,7 @@ export async function uploadVideo(
 export async function getReactions(
   sessionId: string,
   startTime?: number,
-  endTime?: number
+  endTime?: number,
 ): Promise<Reaction[]> {
   const params = new URLSearchParams();
   if (startTime !== undefined) params.append("start_time", String(startTime));
@@ -137,7 +140,13 @@ export async function getReactions(
 
 export async function submitReactions(
   sessionId: string,
-  reactions: Array<{ timestamp: number; type: string; intensity: number; confidence: number }>
+  reactions: Array<{
+    timestamp: number;
+    type: string;
+    intensity: number;
+    confidence: number;
+    breathing_rate?: number | null;
+  }>,
 ): Promise<void> {
   const res = await fetch(`/api/sessions/${sessionId}/reactions`, {
     method: "POST",
@@ -160,7 +169,7 @@ export async function getInsights(sessionId: string): Promise<Insights> {
 export async function sendChatMessage(
   sessionId: string,
   message: string,
-  history: ChatMessage[] = []
+  history: ChatMessage[] = [],
 ): Promise<ChatResponse> {
   const res = await fetch(`/api/sessions/${sessionId}/chat`, {
     method: "POST",

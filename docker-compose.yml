@@ -21,6 +21,11 @@ services:
       # Read at runtime by the /api proxy in src/server.ts. Resolvable only
       # inside the compose network, which is why the browser never sees it.
       API_URL: http://backend:8000
+    # Secrets live in backend/.env; the frontend server needs SMARTSPECTRA_API_KEY from it
+    # for breathing vitals. Optional: without it breathing measurements are just hidden.
+    env_file:
+      - path: ./backend/.env
+        required: false
     depends_on:
       backend:
         condition: service_healthy
